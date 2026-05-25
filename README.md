@@ -1,64 +1,47 @@
-# HWP Document Suite Skill
+# Skills-for-founder_codex
 
-Main package folder:
+Founder-focused Codex skills and helper tools.
 
-```text
-hwp-skill/
-```
+## Packages
 
-Open [hwp-skill/README.md](hwp-skill/README.md) first. The organized package now keeps the actual Codex skill under `hwp-skill/skill/hwp-document-suite/`, with docs, examples, and command notes beside it.
+- `hwp-skill/`: Korean Hangul Office document skill package.
+  - Reads `.hwp`, `.hwpx`, `.hwpml`.
+  - Extracts Markdown/JSON.
+  - Summarizes document structure and tables.
+  - Edits HWP text and table cells.
+  - Fills known government/business-plan form tables from JSON maps.
 
-Codex skill for reading, understanding, and editing Korean Hangul Office documents (`.hwp`, `.hwpx`, `.hwpml`).
+## HWP Skill At A Glance
 
-## What It Does
-
-- Reads HWP/HWPX/HWPML contents into Markdown and JSON.
-- Summarizes document structure, headings, tables, images, controls, and metadata.
-- Supports safe HWP edits through separate output files.
-- Provides wrappers around `kordoc`, `k-skill-rhwp`, and optional upstream `rhwp`.
+| Area | Role | Main File |
+| --- | --- | --- |
+| Skill instructions | Tells Codex when and how to handle HWP/HWPX documents | `hwp-skill/skill/hwp-document-suite/SKILL.md` |
+| Reading/analysis | Converts HWP/HWPX/HWPML into Markdown, JSON, and summary files | `hwp_inspect.mjs` |
+| Basic editing | Wraps `k-skill-rhwp` for info/search/replace/insert/delete/table edits | `hwp_edit.mjs` |
+| Form filling | Fills multiple HWP table cells from one JSON map | `hwp_fill_cells.mjs` |
+| Business-plan forms | Reusable guidance for startup application forms | `business-plan-forms.md` |
+| Example cell map | Ready example for startup item overview summary tables | `business-plan-overview-cells.json` |
 
 ## Install
 
-Clone this repository, then copy the skill into your Codex skills directory:
-
 ```powershell
-git clone <this-repo-url>
-cd A1-hwp-skill
+cd hwp-skill
 .\install.ps1
 ```
 
-On macOS/Linux:
+macOS/Linux:
 
 ```bash
-git clone <this-repo-url>
-cd A1-hwp-skill
+cd hwp-skill
 ./install.sh
 ```
 
-Manual install is also simple: copy `hwp-document-suite/` into `~/.codex/skills/`.
+Manual install:
 
-## Requirements
-
-- Node.js 18+
-- Internet access the first time `npx` downloads packages
-- Optional: Rust/Cargo or a release binary for upstream `rhwp` if you need advanced layout diagnostics
-
-## Example Prompts
-
-- "이 HWP 파일 전체 내용과 표 구조를 읽고 요약해줘."
-- "이 HWPX 문서를 JSON으로 뽑아서 섹션, 표, 이미지가 어떻게 구성됐는지 알려줘."
-- "문서 안의 2025를 2026으로 바꾼 새 HWP 파일을 만들어줘."
-- "표 첫 번째 셀 내용을 합계로 수정해줘."
-
-## Direct Script Use
-
-```bash
-node hwp-document-suite/scripts/hwp_inspect.mjs ./sample.hwp --out-dir ./out
-node hwp-document-suite/scripts/hwp_edit.mjs info ./sample.hwp
-node hwp-document-suite/scripts/hwp_edit.mjs replace-all ./sample.hwp ./out/edited.hwp --query 2025 --replacement 2026
+```text
+Copy hwp-skill/skill/hwp-document-suite into ~/.codex/skills/
 ```
 
-Outputs are written separately so the original document is preserved.
+## Start Here
 
-# Skills-for-founder_codex
-# Skills-for-founder_codex
+Open `hwp-skill/README.md` for the full package guide.

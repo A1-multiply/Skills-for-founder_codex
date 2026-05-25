@@ -18,6 +18,7 @@ Use this routing:
 | Extract form fields from parsed blocks | `kordoc` Node API |
 | Compare readable contents of two documents | `kordoc` Node API or JSON/Markdown diff |
 | Edit HWP body text or table contents | `k-skill-rhwp` |
+| Fill a known HWP form/table from draft text | `scripts/hwp_fill_cells.mjs` |
 | Inspect low-level layout, page rendering, thumbnails, locked/read-only HWP conversion | upstream `rhwp` CLI |
 
 ## Quick Start
@@ -28,6 +29,7 @@ Prefer the bundled scripts when possible:
 node hwp-document-suite/scripts/hwp_inspect.mjs ./input.hwp --out-dir ./out
 node hwp-document-suite/scripts/hwp_edit.mjs info ./input.hwp
 node hwp-document-suite/scripts/hwp_edit.mjs replace-all ./input.hwp ./out/edited.hwp --query 2025 --replacement 2026
+node hwp-document-suite/scripts/hwp_fill_cells.mjs ./input.hwp ./out/filled.hwp --map ./cells.json
 ```
 
 The scripts call `npx` packages on demand, so they work in a freshly cloned repository with Node.js 18+.
@@ -90,6 +92,54 @@ Important editing limits:
 - `replace-all` targets body paragraphs; table cells may require `set-cell-text`.
 - Do not replace across paragraph boundaries with one command. Use multiple edits.
 - Do not rely on visual coordinates; use `info`, `search`, and parsed structure first.
+
+## Filling Form Tables
+
+Use this workflow when the user asks to put drafted text into a HWP/HWPX template, especially Korean government forms with tables.
+
+1. Inspect/read the document first with `kordoc`.
+2. Identify the target section by visible heading text.
+3. Find the parent paragraph and control for the target table:
+   - Use `render <file> --page N --format html` to see the target table visually.
+   - Use one safe probe in a copy if needed: `set-cell-text <input> <probe-output> --section 0 --parent-paragraph P --control C --cell 0 --text PROBE`.
+   - Re-render the probe output to confirm which table was touched.
+4. Build a JSON cell map and run `hwp_fill_cells.mjs`.
+5. Re-read the output with `kordoc` and check that all target phrases appear.
+6. Delete temporary probe/intermediate files; leave only the final output unless the user asks otherwise.
+
+For the 2026 Preliminary Startup Package business plan template, the `창업 아이템 개요(요약)` table is commonly:
+
+```json
+{
+  "section": 0,
+  "parentParagraph": 7,
+  "control": 0,
+  "cells": {
+    "1": "item name",
+    "3": "category",
+    "5": "item overview",
+    "7": "problem",
+    "9": "solution / feasibility",
+    "11": "growth strategy",
+    "13": "team"
+  }
+}
+```
+
+Example:
+
+```bash
+node hwp-document-suite/scripts/hwp_fill_cells.mjs ./template.hwp ./out/draft.hwp --map ./overview-cells.json
+```
+
+Drafting guidance for judges:
+
+- Use one tight bullet per cell when the table is shallow; long multiline text may be clipped or compete with nested guide text.
+- Start each cell with the business value, not background explanation.
+- Prefer concrete phrases: target customer, pain point, device mechanism, output model, revenue model, validation plan.
+- If the user requests blue text, first try filling cells that already contain blue guide text so the document style may be inherited. If the CLI cannot explicitly set color, disclose that limitation.
+
+Read `references/business-plan-forms.md` for repeatable patterns and a ready JSON template.
 
 ## Verification
 

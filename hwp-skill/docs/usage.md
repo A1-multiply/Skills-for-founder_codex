@@ -8,6 +8,7 @@
 - Create a compact summary report.
 - Edit HWP files with safe output paths.
 - Replace text, insert text, delete text, create tables, and set table-cell text.
+- Fill known HWP form tables from a JSON cell map.
 
 ## Recommended Workflow
 
@@ -42,6 +43,34 @@ node skill/hwp-document-suite/scripts/hwp_edit.mjs insert-text ./input.hwp ./out
 node skill/hwp-document-suite/scripts/hwp_edit.mjs delete-text ./input.hwp ./out/edited.hwp --section 0 --paragraph 0 --offset 0 --length 4
 node skill/hwp-document-suite/scripts/hwp_edit.mjs create-table ./input.hwp ./out/table.hwp --section 0 --paragraph 1 --offset 0 --rows 2 --cols 3
 node skill/hwp-document-suite/scripts/hwp_edit.mjs set-cell-text ./input.hwp ./out/cell.hwp --section 0 --parent-paragraph 1 --control 0 --cell 0 --text "value"
+node skill/hwp-document-suite/scripts/hwp_fill_cells.mjs ./input.hwp ./out/filled.hwp --map ./examples/business-plan-overview-cells.json
+```
+
+## Fill A Business Plan Overview Table
+
+For templates like `창업 아이템 개요(요약)`, create a JSON map:
+
+```json
+{
+  "section": 0,
+  "parentParagraph": 7,
+  "control": 0,
+  "cells": {
+    "1": "item name",
+    "3": "category",
+    "5": "overview",
+    "7": "problem",
+    "9": "feasibility",
+    "11": "growth strategy",
+    "13": "team"
+  }
+}
+```
+
+Then run:
+
+```bash
+node skill/hwp-document-suite/scripts/hwp_fill_cells.mjs ./template.hwp ./out/draft.hwp --map ./examples/business-plan-overview-cells.json
 ```
 
 ## Notes

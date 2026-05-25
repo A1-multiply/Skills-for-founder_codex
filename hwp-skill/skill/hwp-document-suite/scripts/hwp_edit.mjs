@@ -19,7 +19,7 @@ Examples:
 const npx = process.platform === "win32" ? "npx.cmd" : "npx";
 const child = spawn(npx, ["--yes", "k-skill-rhwp", ...args], {
   stdio: "inherit",
-  shell: false
+  shell: process.platform === "win32"
 });
 
 child.on("exit", (code, signal) => {

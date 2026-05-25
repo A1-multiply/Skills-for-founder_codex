@@ -21,6 +21,7 @@ hwp-skill/
     structure.md
   examples/
     prompts.md
+    business-plan-overview-cells.json
   tools/
     commands.md
 ```

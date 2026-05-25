@@ -14,6 +14,7 @@ node skill/hwp-document-suite/scripts/hwp_inspect.mjs ./sample.hwp --out-dir ./o
 node skill/hwp-document-suite/scripts/hwp_edit.mjs info ./sample.hwp
 node skill/hwp-document-suite/scripts/hwp_edit.mjs search ./sample.hwp --query "2025"
 node skill/hwp-document-suite/scripts/hwp_edit.mjs replace-all ./sample.hwp ./out/edited.hwp --query "2025" --replacement "2026"
+node skill/hwp-document-suite/scripts/hwp_fill_cells.mjs ./sample.hwp ./out/filled.hwp --map ./examples/business-plan-overview-cells.json
 ```
 
 ## Underlying Tools

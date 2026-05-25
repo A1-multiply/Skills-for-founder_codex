@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { spawn } from "node:child_process";
+import { exec, execFile } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -48,24 +48,34 @@ const basename = readFlag("--basename", path.basename(input, ext));
 function run(commandArgs) {
   return new Promise((resolve, reject) => {
     const npx = process.platform === "win32" ? "npx.cmd" : "npx";
-    const child = spawn(npx, commandArgs, { shell: false });
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (chunk) => {
-      stdout += chunk.toString();
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr += chunk.toString();
-    });
-    child.on("error", reject);
-    child.on("exit", (code) => {
-      if (code === 0) {
+    if (process.platform === "win32") {
+      const command = `${npx} ${commandArgs.map(quoteWindowsArg).join(" ")}`;
+      exec(command, { encoding: "utf8", maxBuffer: 50 * 1024 * 1024 }, (error, stdout, stderr) => {
+        if (error) {
+          reject(new Error(`Command failed (${error.code ?? "unknown"}): ${command}\n${stderr}`));
+          return;
+        }
         resolve({ stdout, stderr });
-      } else {
-        reject(new Error(`Command failed (${code}): npx ${commandArgs.join(" ")}\n${stderr}`));
+      });
+      return;
+    }
+
+    execFile(npx, commandArgs, {
+      encoding: "utf8",
+      maxBuffer: 50 * 1024 * 1024
+    }, (error, stdout, stderr) => {
+      if (error) {
+        reject(new Error(`Command failed (${error.code ?? "unknown"}): npx ${commandArgs.join(" ")}\n${stderr}`));
+        return;
       }
+      resolve({ stdout, stderr });
     });
   });
+}
+
+function quoteWindowsArg(value) {
+  const text = String(value);
+  return `"${text.replace(/"/g, '\\"')}"`;
 }
 
 function countBlocks(blocks) {
