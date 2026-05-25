@@ -1,0 +1,4 @@
+interface:
+  display_name: "HWP Document Suite"
+  short_description: "Read, analyze, and edit Korean HWP/HWPX documents."
+  default_prompt: "Read this HWP/HWPX document, summarize its structure and contents, including tables, then make requested edits safely."
