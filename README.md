@@ -61,3 +61,4 @@ node hwp-document-suite/scripts/hwp_edit.mjs replace-all ./sample.hwp ./out/edit
 Outputs are written separately so the original document is preserved.
 
 # Skills-for-founder_codex
+# Skills-for-founder_codex
