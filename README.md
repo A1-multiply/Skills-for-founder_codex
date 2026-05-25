@@ -1,5 +1,13 @@
 # HWP Document Suite Skill
 
+Main package folder:
+
+```text
+hwp-skill/
+```
+
+Open [hwp-skill/README.md](hwp-skill/README.md) first. The organized package now keeps the actual Codex skill under `hwp-skill/skill/hwp-document-suite/`, with docs, examples, and command notes beside it.
+
 Codex skill for reading, understanding, and editing Korean Hangul Office documents (`.hwp`, `.hwpx`, `.hwpml`).
 
 ## What It Does
@@ -51,3 +59,5 @@ node hwp-document-suite/scripts/hwp_edit.mjs replace-all ./sample.hwp ./out/edit
 ```
 
 Outputs are written separately so the original document is preserved.
+
+# Skills-for-founder_codex
