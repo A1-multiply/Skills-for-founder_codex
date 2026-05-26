@@ -1,20 +1,22 @@
 #!/usr/bin/env node
 import { exec, execFile } from "node:child_process";
-import { mkdtemp, readFile, rename, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const args = process.argv.slice(2);
 
 function usage() {
   console.log(`Usage:
-  node hwp_fill_cells.mjs <input.hwp> <output.hwp> --map <cells.json>
+  node hwp_fill_cells.mjs <input.hwp> <output.hwp> --map <cells.json> [--clean-preset business-plan-guides]
 
 Map JSON:
   {
     "section": 0,
     "parentParagraph": 7,
     "control": 0,
+    "cleanPreset": "business-plan-guides",
     "cells": {
       "1": "text for cell 1",
       "3": "text for cell 3"
@@ -39,6 +41,7 @@ function readFlag(name) {
 const input = args[0];
 const output = args[1];
 const mapPath = readFlag("--map");
+const cleanPresetArg = readFlag("--clean-preset");
 
 if (!input || !output || !mapPath || args.includes("--help") || args.includes("-h")) {
   usage();
@@ -49,6 +52,7 @@ const map = JSON.parse(await readFile(mapPath, "utf8"));
 const section = Number(map.section ?? 0);
 const parentParagraph = Number(map.parentParagraph);
 const control = Number(map.control ?? 0);
+const cleanPreset = cleanPresetArg || map.cleanPreset || null;
 
 if (!Number.isInteger(parentParagraph)) {
   throw new Error("Map requires integer parentParagraph");
@@ -87,6 +91,43 @@ function run(commandArgs) {
   });
 }
 
+function runNode(commandArgs) {
+  return new Promise((resolve, reject) => {
+    if (process.platform === "win32") {
+      const command = [process.execPath, ...commandArgs].map(quoteWindowsArg).join(" ");
+      exec(command, { encoding: "utf8", maxBuffer: 20 * 1024 * 1024 }, (error, stdout, stderr) => {
+        if (error) {
+          reject(new Error(`Command failed (${error.code ?? "unknown"}): ${command}\n${stderr}`));
+          return;
+        }
+        resolve({ stdout, stderr });
+      });
+      return;
+    }
+
+    execFile(process.execPath, commandArgs, {
+      encoding: "utf8",
+      maxBuffer: 20 * 1024 * 1024
+    }, (error, stdout, stderr) => {
+      if (error) {
+        reject(new Error(`Command failed (${error.code ?? "unknown"}): node ${commandArgs.join(" ")}\n${stderr}`));
+        return;
+      }
+      resolve({ stdout, stderr });
+    });
+  });
+}
+
+function parseJsonOrText(text) {
+  const trimmed = String(text ?? "").trim();
+  if (!trimmed) return null;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return trimmed;
+  }
+}
+
 function quoteWindowsArg(value) {
   const text = String(value);
   return `"${text.replace(/"/g, '\\"')}"`;
@@ -96,6 +137,7 @@ const tempDir = await mkdtemp(path.join(tmpdir(), "hwp-fill-cells-"));
 let current = input;
 
 try {
+  const filledOutput = cleanPreset ? path.join(tempDir, "filled-before-clean.hwp") : output;
   for (let index = 0; index < cellEntries.length; index += 1) {
     const [cellKey, rawValue] = cellEntries[index];
     const cell = Number(cellKey);
@@ -105,7 +147,7 @@ try {
 
     const spec = typeof rawValue === "object" && rawValue !== null ? rawValue : { text: rawValue };
     const text = String(spec.text ?? "");
-    const next = index === cellEntries.length - 1 ? output : path.join(tempDir, `step-${index}.hwp`);
+    const next = index === cellEntries.length - 1 ? filledOutput : path.join(tempDir, `step-${index}.hwp`);
     const commandArgs = [
       "--yes",
       "k-skill-rhwp",
@@ -135,7 +177,26 @@ try {
     current = next;
   }
 
-  console.log(JSON.stringify({ ok: true, outputPath: output, cellsWritten: cellEntries.length }, null, 2));
+  let cleanup = null;
+  if (cleanPreset) {
+    const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+    const cleanupResult = await runNode([
+      path.join(scriptDir, "hwp_clean_text.mjs"),
+      current,
+      output,
+      "--preset",
+      cleanPreset
+    ]);
+    cleanup = parseJsonOrText(cleanupResult.stdout);
+  }
+
+  console.log(JSON.stringify({
+    ok: true,
+    outputPath: output,
+    cellsWritten: cellEntries.length,
+    cleanPreset,
+    cleanup
+  }, null, 2));
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
