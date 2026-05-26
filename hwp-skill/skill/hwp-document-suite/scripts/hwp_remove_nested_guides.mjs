@@ -5,6 +5,7 @@ import { execFile, execFileSync, execSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { hancomRequireNoExistingHwpPowerShell, hancomSecurityPowerShell } from "./hwp_hancom_security.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -223,9 +224,10 @@ function removeWithHancomCom(inputPath, outputPath) {
 $ErrorActionPreference = 'Stop'
 $inputPath = ${quotePowerShellString(path.resolve(inputPath))}
 $outputPath = ${quotePowerShellString(path.resolve(outputPath))}
+${hancomRequireNoExistingHwpPowerShell()}
 $hwp = New-Object -ComObject HWPFrame.HwpObject
 $hwp.SetMessageBoxMode(0x00020000) | Out-Null
-try { $hwp.RegisterModule('FilePathCheckDLL','FilePathCheckerModule') | Out-Null } catch {}
+${hancomSecurityPowerShell(import.meta.url)}
 $opened = $hwp.Open($inputPath, 'HWP', 'forceopen:true;readonly:false')
 if (-not $opened) { throw 'Hancom HWP failed to open input file.' }
 $ctrls = @()

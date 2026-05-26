@@ -81,6 +81,14 @@ node skill/hwp-document-suite/scripts/hwp_fill_cells.mjs ./template.hwp ./out/dr
 
 `removeNestedGuidesPreset`을 넣으면 예시문이 있던 빈 중첩 안내 표까지 삭제합니다. Windows에서 한컴오피스 한글 COM 자동화를 사용하므로, 한글이 열려 있거나 보안창에 멈춰 있으면 닫고 다시 실행합니다.
 
+한컴 자동화가 파일을 열 때 뜨는 `접근 허용/모두 허용` 보안창은 스킬이 자동으로 처리합니다. 스크립트 실행 시 포함된 `FilePathCheckerModuleExample.dll`을 현재 사용자 레지스트리에 등록하고 `RegisterModule`을 호출한 뒤 파일을 엽니다. 이미 한컴이 떠 있으면 기존 프로세스에 붙어 보안창이 뜰 수 있으므로, 스킬은 한컴 프로세스가 감지될 때 파일을 열지 않고 먼저 중단합니다.
+
+보안 모듈만 먼저 확인하려면:
+
+```bash
+node skill/hwp-document-suite/scripts/hwp_hancom_preflight.mjs
+```
+
 `formatPreset`을 넣으면 개요표 작성 셀을 검정색, 비기울임, 작은 글씨로 정리합니다. 원본 파란 안내문 스타일을 상속한 채 제출하지 않도록 기본으로 사용합니다.
 
 개요표 문장은 아래 구조를 기본으로 작성합니다.

@@ -5,6 +5,7 @@ import { execFile, execFileSync, execSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { hancomRequireNoExistingHwpPowerShell, hancomSecurityPowerShell } from "./hwp_hancom_security.mjs";
 
 const require = createRequire(import.meta.url);
 const args = process.argv.slice(2);
@@ -264,9 +265,10 @@ function hancomResave(inputPath, outputPath) {
 $ErrorActionPreference = 'Stop'
 $inputPath = ${quotePowerShellString(path.resolve(inputPath))}
 $outputPath = ${quotePowerShellString(path.resolve(outputPath))}
+${hancomRequireNoExistingHwpPowerShell()}
 $hwp = New-Object -ComObject HWPFrame.HwpObject
 $hwp.SetMessageBoxMode(0x00020000) | Out-Null
-try { $hwp.RegisterModule('FilePathCheckDLL','FilePathCheckerModule') | Out-Null } catch {}
+${hancomSecurityPowerShell(import.meta.url)}
 $opened = $hwp.Open($inputPath, 'HWP', 'forceopen:true;readonly:false')
 if (-not $opened) { throw 'Hancom HWP failed to open layout output.' }
 $hwp.SaveAs($outputPath, 'HWP', '') | Out-Null
@@ -376,9 +378,10 @@ $inputPath = ${quotePowerShellString(path.resolve(inputPath))}
 $outputPath = ${quotePowerShellString(path.resolve(outputPath))}
 $json = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${replacementsJson}'))
 $pairs = $json | ConvertFrom-Json
+${hancomRequireNoExistingHwpPowerShell()}
 $hwp = New-Object -ComObject HWPFrame.HwpObject
 $hwp.SetMessageBoxMode(0x00020000) | Out-Null
-try { $hwp.RegisterModule('FilePathCheckDLL','FilePathCheckerModule') | Out-Null } catch {}
+${hancomSecurityPowerShell(import.meta.url)}
 $opened = $hwp.Open($inputPath, 'HWP', 'forceopen:true;readonly:false')
 if (-not $opened) { throw 'Hancom HWP failed to open input file.' }
 
@@ -398,11 +401,49 @@ function Invoke-AllReplace([string]$find, [string]$replace) {
   }
 }
 
+function Apply-OverviewTextStyle([string]$text) {
+  if ([string]::IsNullOrWhiteSpace($text)) { return $false }
+  try { $hwp.SetPos(0, 0, 0) | Out-Null } catch {}
+  $act = $hwp.CreateAction('RepeatFind')
+  $set = $act.CreateSet()
+  $act.GetDefault($set) | Out-Null
+  $set.SetItem('FindString', $text) | Out-Null
+  $set.SetItem('Direction', 2) | Out-Null
+  $set.SetItem('IgnoreMessage', 1) | Out-Null
+  $set.SetItem('FindType', 1) | Out-Null
+  try {
+    if (-not $act.Execute($set)) { return $false }
+    $charAct = $hwp.CreateAction('CharShape')
+    $charSet = $charAct.CreateSet()
+    $charAct.GetDefault($charSet) | Out-Null
+    $charSet.SetItem('TextColor', 0) | Out-Null
+    $charSet.SetItem('Italic', 0) | Out-Null
+    $charSet.SetItem('Bold', 0) | Out-Null
+    $charSet.SetItem('Height', 850) | Out-Null
+    $charAct.Execute($charSet) | Out-Null
+    try {
+      $paraAct = $hwp.CreateAction('ParagraphShape')
+      $paraSet = $paraAct.CreateSet()
+      $paraAct.GetDefault($paraSet) | Out-Null
+      $paraSet.SetItem('AlignType', 0) | Out-Null
+      $paraSet.SetItem('LineSpacing', 110) | Out-Null
+      $paraAct.Execute($paraSet) | Out-Null
+    } catch {}
+    return $true
+  } catch {
+    return $false
+  }
+}
+
 $attempted = 0
 $reportedSuccess = 0
+$styled = 0
 foreach ($pair in $pairs) {
   $attempted += 1
   if (Invoke-AllReplace $pair.find $pair.replace) { $reportedSuccess += 1 }
+  foreach ($line in ([string]$pair.replace -split "\\r?\\n")) {
+    if (Apply-OverviewTextStyle $line) { $styled += 1 }
+  }
 }
 
 $hwp.SaveAs($outputPath, 'HWP', '') | Out-Null
@@ -413,6 +454,7 @@ Write-Output (@{
   outputPath = $outputPath
   attempted = $attempted
   reportedSuccess = $reportedSuccess
+  styled = $styled
 } | ConvertTo-Json -Compress)
 `;
 

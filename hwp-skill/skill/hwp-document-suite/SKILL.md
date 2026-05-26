@@ -150,6 +150,8 @@ When `cleanPreset` is present, `hwp_fill_cells.mjs` first writes the mapped tabl
 
 When `removeNestedGuidesPreset` is present on Windows with Hancom Office installed, `hwp_fill_cells.mjs` then runs `hwp_remove_nested_guides.mjs` through Hancom COM automation to delete the leftover 1x1 nested guide table controls from the overview cells. If Hancom is open or stuck on a security dialog, close Hancom or rerun after terminating `Hwp.exe`.
 
+Before any Hancom COM file open/save step, the scripts auto-register the bundled Hancom automation security module at `vendor/hancom-automation-security/FilePathCheckerModuleExample.dll` under the current user's `HNC\HwpAutomation\Modules` registry paths, then call `RegisterModule("FilePathCheckDLL", ...)`. To avoid any visible file-access warning dialog, COM scripts must fail before opening a file if an existing `Hwp.exe` process is detected; ask the user to close Hancom first instead of continuing into a warning popup.
+
 Drafting guidance for judges:
 
 - Do not fill business-plan overview cells with a single loose sentence. Use the recurring Korean startup-plan pattern:
