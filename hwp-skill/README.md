@@ -22,6 +22,8 @@ Codex에서 한컴오피스 한글 문서(`.hwp`, `.hwpx`, `.hwpml`)를 읽고, 
 | 표 셀 편집 | 특정 HWP 표 셀에 텍스트 입력 | 신청서, 사업계획서 양식 표를 채울 때 |
 | 양식 자동 채우기 | JSON 매핑으로 여러 표 셀을 한 번에 작성 | 반복되는 양식 작성 작업을 자동화할 때 |
 | 예시문 제거 | 양식 안의 파란색 예시/가이드 문구를 공백 처리 | 기존 예시가 남지 않게 최종 작성본을 만들 때 |
+| 중첩 안내 표 제거 | 예시문이 있던 빈 점선 표 박스를 삭제 | 최종 작성본에서 빈 안내 박스까지 없애야 할 때 |
+| 개요표 포맷 정리 | 검정색, 비기울임, 작은 글씨로 정리 | 안내문 스타일 상속 없이 제출용처럼 보이게 할 때 |
 | 결과 검증 | 수정한 파일을 다시 읽거나 렌더링해서 반영 확인 | 편집이나 양식 채우기 후 확인할 때 |
 
 ## 주요 파일 역할
@@ -33,6 +35,8 @@ Codex에서 한컴오피스 한글 문서(`.hwp`, `.hwpx`, `.hwpml`)를 읽고, 
 | `skill/hwp-document-suite/scripts/hwp_edit.mjs` | `k-skill-rhwp` 편집 명령 실행 래퍼 |
 | `skill/hwp-document-suite/scripts/hwp_fill_cells.mjs` | JSON 매핑으로 HWP 표 여러 칸을 작성 |
 | `skill/hwp-document-suite/scripts/hwp_clean_text.mjs` | 예시/가이드 문구를 공백 처리 |
+| `skill/hwp-document-suite/scripts/hwp_remove_nested_guides.mjs` | 개요표 안의 빈 중첩 안내 표 삭제 |
+| `skill/hwp-document-suite/scripts/hwp_format_overview.mjs` | 개요표 글자색, 기울임, 크기 정리 |
 | `skill/hwp-document-suite/references/tooling.md` | 사용 도구와 명령어 참고 문서 |
 | `skill/hwp-document-suite/references/business-plan-forms.md` | 창업 지원사업 사업계획서 양식 작성 워크플로 |
 | `examples/business-plan-overview-cells.json` | 창업 아이템 개요 요약표 작성 예시 |
@@ -103,9 +107,15 @@ node skill/hwp-document-suite/scripts/hwp_fill_cells.mjs ./sample.hwp ./out/fill
 node skill/hwp-document-suite/scripts/hwp_clean_text.mjs ./filled.hwp ./out/cleaned.hwp --preset business-plan-guides
 ```
 
+빈 중첩 안내 표 제거만 따로 실행:
+
+```bash
+node skill/hwp-document-suite/scripts/hwp_remove_nested_guides.mjs ./cleaned.hwp ./out/final.hwp --preset business-plan-overview
+```
+
 ## 결과물 원칙
 
 - 원본 HWP/HWPX 파일은 건드리지 않습니다.
 - 수정본이나 작성본은 별도 출력 경로에 저장합니다.
 - 좌표 탐색용 임시 파일은 검증 후 삭제합니다.
-- 표 안의 중첩 가이드 박스 틀은 남을 수 있지만, 제출용 작성본에 보이는 예시 문구는 공백 처리합니다.
+- 사업계획서 개요표는 예시 문구와 빈 중첩 안내 표까지 제거한 제출용 작성본을 목표로 합니다.

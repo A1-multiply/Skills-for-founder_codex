@@ -20,6 +20,9 @@ Use this routing:
 | Edit HWP body text or table contents | `k-skill-rhwp` |
 | Fill a known HWP form/table from draft text | `scripts/hwp_fill_cells.mjs` |
 | Remove leftover guide/example text from known form templates | `scripts/hwp_clean_text.mjs` |
+| Remove leftover nested guide table boxes from known HWP templates | `scripts/hwp_remove_nested_guides.mjs` |
+| Apply compact black non-italic formatting to known overview cells | `scripts/hwp_format_overview.mjs` |
+| Compose readable line-broken overview bullets with optional blue emphasis | `scripts/hwp_layout_overview.mjs` |
 | Inspect low-level layout, page rendering, thumbnails, locked/read-only HWP conversion | upstream `rhwp` CLI |
 
 ## Quick Start
@@ -32,6 +35,9 @@ node hwp-document-suite/scripts/hwp_edit.mjs info ./input.hwp
 node hwp-document-suite/scripts/hwp_edit.mjs replace-all ./input.hwp ./out/edited.hwp --query 2025 --replacement 2026
 node hwp-document-suite/scripts/hwp_fill_cells.mjs ./input.hwp ./out/filled.hwp --map ./cells.json
 node hwp-document-suite/scripts/hwp_clean_text.mjs ./out/filled.hwp ./out/cleaned.hwp --preset business-plan-guides
+node hwp-document-suite/scripts/hwp_remove_nested_guides.mjs ./out/cleaned.hwp ./out/final.hwp --preset business-plan-overview
+node hwp-document-suite/scripts/hwp_format_overview.mjs ./out/final.hwp ./out/final-formatted.hwp --preset business-plan-overview-compact
+node hwp-document-suite/scripts/hwp_layout_overview.mjs ./out/final-formatted.hwp ./out/final-layout.hwp --preset pork-grill-overview
 ```
 
 The scripts call `npx` packages on demand, so they work in a freshly cloned repository with Node.js 18+.
@@ -107,8 +113,10 @@ Use this workflow when the user asks to put drafted text into a HWP/HWPX templat
    - Re-render the probe output to confirm which table was touched.
 4. Build a JSON cell map and run `hwp_fill_cells.mjs`.
 5. If the source form contains blue guide/example text, include `"cleanPreset": "business-plan-guides"` in the map or pass `--clean-preset business-plan-guides`.
-6. Re-read the output with `kordoc` and check that all target phrases appear and old guide/example phrases are gone.
-7. Delete temporary probe/intermediate files; leave only the final output unless the user asks otherwise.
+6. If the source form contains nested guide boxes, include `"removeNestedGuidesPreset": "business-plan-overview"` in the map or pass `--remove-nested-guides business-plan-overview`.
+7. For judge-facing overview tables, include `"formatPreset": "business-plan-overview-compact"` so generated text is black, non-italic, compact, and not inherited from blue guide styles.
+8. Re-read the output with `kordoc` and check that all target phrases appear and old guide/example phrases are gone.
+9. Delete temporary probe/intermediate files; leave only the final output unless the user asks otherwise.
 
 For the 2026 Preliminary Startup Package business plan template, the `창업 아이템 개요(요약)` table is commonly:
 
@@ -118,6 +126,8 @@ For the 2026 Preliminary Startup Package business plan template, the `창업 아
   "parentParagraph": 7,
   "control": 0,
   "cleanPreset": "business-plan-guides",
+  "removeNestedGuidesPreset": "business-plan-overview",
+  "formatPreset": "business-plan-overview-compact",
   "cells": {
     "1": "item name",
     "3": "category",
@@ -138,10 +148,27 @@ node hwp-document-suite/scripts/hwp_fill_cells.mjs ./template.hwp ./out/draft.hw
 
 When `cleanPreset` is present, `hwp_fill_cells.mjs` first writes the mapped table cells, then runs `hwp_clean_text.mjs` to blank known guide/example phrases in the HWP body streams. This prevents old examples from remaining below the newly written answer in nested guide boxes.
 
+When `removeNestedGuidesPreset` is present on Windows with Hancom Office installed, `hwp_fill_cells.mjs` then runs `hwp_remove_nested_guides.mjs` through Hancom COM automation to delete the leftover 1x1 nested guide table controls from the overview cells. If Hancom is open or stuck on a security dialog, close Hancom or rerun after terminating `Hwp.exe`.
+
 Drafting guidance for judges:
 
-- Use one tight bullet per cell when the table is shallow; long multiline text may be clipped or compete with nested guide text.
+- Do not fill business-plan overview cells with a single loose sentence. Use the recurring Korean startup-plan pattern:
+  - bracketed headline: `[ product/service value in one sentence ]`
+  - short explanatory bullets beginning with `-`
+  - a small section label such as `- 핵심 기능 :`, `- 고객 혜택 :`, `- 2026년 :`
+  - concrete status/plan bullets for feasibility and growth strategy.
+- For `아이템 개요`, write: bracketed value proposition, 1-2 explanation bullets, then key contents such as function, customer benefit, sales path, or operating mechanism.
+- For `문제 인식`, write: bracketed problem statement, current pain, why existing behavior fails, measurable burden if available, and why the item solves it.
+- For `실현 가능성`, write: bracketed implementation statement, current build status, prototype mechanism, test plan, and partners/resources.
+- For `성장전략`, write: bracketed market goal, then year-by-year or stage-by-stage commercialization bullets.
+- For `팀 구성`, write: bracketed execution structure, founder role, external partners, validation/customer feedback role.
+- Keep the tone like a government startup-plan form: concise, declarative, evidence-oriented, and easy for judges to scan.
+- When the user wants human-readable bullet layout, use real in-cell paragraph breaks: bracketed topic line first, then `-` bullets on separate lines. Do not leave the answer as a long run-on paragraph.
+- If the tool path cannot preserve line breaks, use `scripts/hwp_layout_overview.mjs` after filling. On Windows it must use Hancom COM layout/save so the final HWP opens without Hancom's document-security recovery warning; do not deliver raw low-level `splitParagraphInCell` output as the final user file.
+- Keep each overview cell to at most five scan-friendly chunks: one bracketed topic plus up to four `-` items. If content would overflow the page, shorten the cell or split detail into a later section instead of cramming text.
+- Default styling for generated overview answers is black text, non-italic, compact font size. Use blue/larger text only for a specific emphasis line when it improves scanability, and keep it centered or visually balanced if there is extra whitespace.
 - Remove guide/example text before final delivery; the visible text must be the user's answer, not the template examples.
+- Remove nested guide table boxes before final delivery; empty dotted boxes are not acceptable in the filled output.
 - Start each cell with the business value, not background explanation.
 - Prefer concrete phrases: target customer, pain point, device mechanism, output model, revenue model, validation plan.
 - If the user requests blue text, first try filling cells that already contain blue guide text so the document style may be inherited. If the CLI cannot explicitly set color, disclose that limitation.

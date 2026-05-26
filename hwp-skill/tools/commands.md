@@ -23,6 +23,7 @@ node skill/hwp-document-suite/scripts/hwp_fill_cells.mjs ./sample.hwp ./out/fill
 ```
 
 JSON 안에 `"cleanPreset": "business-plan-guides"`가 있으면 표를 채운 뒤 예시/가이드 문구를 자동으로 지웁니다.
+JSON 안에 `"removeNestedGuidesPreset": "business-plan-overview"`가 있으면 예시문이 있던 빈 중첩 안내 표까지 삭제합니다.
 
 명령어에서 직접 지정:
 
@@ -30,10 +31,22 @@ JSON 안에 `"cleanPreset": "business-plan-guides"`가 있으면 표를 채운 �
 node skill/hwp-document-suite/scripts/hwp_fill_cells.mjs ./sample.hwp ./out/filled.hwp --map ./cells.json --clean-preset business-plan-guides
 ```
 
+중첩 안내 표 제거까지 지정:
+
+```bash
+node skill/hwp-document-suite/scripts/hwp_fill_cells.mjs ./sample.hwp ./out/filled.hwp --map ./cells.json --remove-nested-guides business-plan-overview
+```
+
 ## 예시문 제거만 실행
 
 ```bash
 node skill/hwp-document-suite/scripts/hwp_clean_text.mjs ./filled.hwp ./out/cleaned.hwp --preset business-plan-guides
+```
+
+## 빈 중첩 안내 표 제거만 실행
+
+```bash
+node skill/hwp-document-suite/scripts/hwp_remove_nested_guides.mjs ./cleaned.hwp ./out/final.hwp --preset business-plan-overview
 ```
 
 ## 내부에서 쓰는 도구

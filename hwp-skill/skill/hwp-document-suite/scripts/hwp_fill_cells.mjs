@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { exec, execFile } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,7 +9,7 @@ const args = process.argv.slice(2);
 
 function usage() {
   console.log(`Usage:
-  node hwp_fill_cells.mjs <input.hwp> <output.hwp> --map <cells.json> [--clean-preset business-plan-guides]
+  node hwp_fill_cells.mjs <input.hwp> <output.hwp> --map <cells.json> [--clean-preset business-plan-guides] [--remove-nested-guides business-plan-overview] [--format-preset business-plan-overview-compact]
 
 Map JSON:
   {
@@ -17,6 +17,8 @@ Map JSON:
     "parentParagraph": 7,
     "control": 0,
     "cleanPreset": "business-plan-guides",
+    "removeNestedGuidesPreset": "business-plan-overview",
+    "formatPreset": "business-plan-overview-compact",
     "cells": {
       "1": "text for cell 1",
       "3": "text for cell 3"
@@ -42,6 +44,8 @@ const input = args[0];
 const output = args[1];
 const mapPath = readFlag("--map");
 const cleanPresetArg = readFlag("--clean-preset");
+const removeNestedGuidesArg = readFlag("--remove-nested-guides");
+const formatPresetArg = readFlag("--format-preset");
 
 if (!input || !output || !mapPath || args.includes("--help") || args.includes("-h")) {
   usage();
@@ -53,6 +57,8 @@ const section = Number(map.section ?? 0);
 const parentParagraph = Number(map.parentParagraph);
 const control = Number(map.control ?? 0);
 const cleanPreset = cleanPresetArg || map.cleanPreset || null;
+const removeNestedGuidesPreset = removeNestedGuidesArg || map.removeNestedGuidesPreset || null;
+const formatPreset = formatPresetArg || map.formatPreset || null;
 
 if (!Number.isInteger(parentParagraph)) {
   throw new Error("Map requires integer parentParagraph");
@@ -63,14 +69,31 @@ if (cellEntries.length === 0) {
   throw new Error("Map requires at least one cell");
 }
 
-function run(commandArgs) {
+function run(commandArgs, options = {}) {
   return new Promise((resolve, reject) => {
     const npx = process.platform === "win32" ? "npx.cmd" : "npx";
-    if (process.platform === "win32") {
-      const command = `${npx} ${commandArgs.map(quoteWindowsArg).join(" ")}`;
-      exec(command, { encoding: "utf8", maxBuffer: 20 * 1024 * 1024 }, (error, stdout, stderr) => {
+    if (process.platform === "win32" && options.textFile) {
+      const marker = "__HWP_TEXT_FILE__";
+      const textIndex = commandArgs.indexOf(marker);
+      if (textIndex === -1) {
+        reject(new Error("Internal error: textFile option requires __HWP_TEXT_FILE__ marker"));
+        return;
+      }
+
+      const beforeText = commandArgs.slice(0, textIndex);
+      const afterText = commandArgs.slice(textIndex + 1);
+      const script = [
+        "$ErrorActionPreference = 'Stop'",
+        `$text = Get-Content -Raw -Encoding UTF8 -LiteralPath ${quotePowerShellString(options.textFile)}`,
+        `& ${quotePowerShellString(npx)} ${beforeText.map(quotePowerShellString).join(" ")} --text $text ${afterText.map(quotePowerShellString).join(" ")}`
+      ].join("; ");
+
+      execFile("powershell.exe", ["-NoProfile", "-Command", script], {
+        encoding: "utf8",
+        maxBuffer: 20 * 1024 * 1024
+      }, (error, stdout, stderr) => {
         if (error) {
-          reject(new Error(`Command failed (${error.code ?? "unknown"}): ${command}\n${stderr}`));
+          reject(new Error(`Command failed (${error.code ?? "unknown"}): powershell npx ${commandArgs.join(" ")}\n${stderr}`));
           return;
         }
         resolve({ stdout, stderr });
@@ -93,18 +116,6 @@ function run(commandArgs) {
 
 function runNode(commandArgs) {
   return new Promise((resolve, reject) => {
-    if (process.platform === "win32") {
-      const command = [process.execPath, ...commandArgs].map(quoteWindowsArg).join(" ");
-      exec(command, { encoding: "utf8", maxBuffer: 20 * 1024 * 1024 }, (error, stdout, stderr) => {
-        if (error) {
-          reject(new Error(`Command failed (${error.code ?? "unknown"}): ${command}\n${stderr}`));
-          return;
-        }
-        resolve({ stdout, stderr });
-      });
-      return;
-    }
-
     execFile(process.execPath, commandArgs, {
       encoding: "utf8",
       maxBuffer: 20 * 1024 * 1024
@@ -128,16 +139,16 @@ function parseJsonOrText(text) {
   }
 }
 
-function quoteWindowsArg(value) {
-  const text = String(value);
-  return `"${text.replace(/"/g, '\\"')}"`;
+function quotePowerShellString(value) {
+  return `'${String(value).replace(/'/g, "''")}'`;
 }
 
 const tempDir = await mkdtemp(path.join(tmpdir(), "hwp-fill-cells-"));
 let current = input;
 
 try {
-  const filledOutput = cleanPreset ? path.join(tempDir, "filled-before-clean.hwp") : output;
+  const needsPostProcess = cleanPreset || removeNestedGuidesPreset || formatPreset;
+  const filledOutput = needsPostProcess ? path.join(tempDir, "filled-before-postprocess.hwp") : output;
   for (let index = 0; index < cellEntries.length; index += 1) {
     const [cellKey, rawValue] = cellEntries[index];
     const cell = Number(cellKey);
@@ -147,6 +158,8 @@ try {
 
     const spec = typeof rawValue === "object" && rawValue !== null ? rawValue : { text: rawValue };
     const text = String(spec.text ?? "");
+    const textFile = path.join(tempDir, `cell-${index}.txt`);
+    await writeFile(textFile, text, "utf8");
     const next = index === cellEntries.length - 1 ? filledOutput : path.join(tempDir, `step-${index}.hwp`);
     const commandArgs = [
       "--yes",
@@ -163,7 +176,7 @@ try {
       "--cell",
       String(cell),
       "--text",
-      text
+      process.platform === "win32" ? "__HWP_TEXT_FILE__" : text
     ];
 
     if (spec.cellParagraph !== undefined) {
@@ -173,21 +186,51 @@ try {
       commandArgs.push("--no-replace");
     }
 
-    await run(commandArgs);
+    await run(commandArgs, { textFile });
     current = next;
   }
 
   let cleanup = null;
   if (cleanPreset) {
     const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+    const cleanupOutput = removeNestedGuidesPreset ? path.join(tempDir, "cleaned-before-nested-guide-removal.hwp") : output;
     const cleanupResult = await runNode([
       path.join(scriptDir, "hwp_clean_text.mjs"),
       current,
-      output,
+      cleanupOutput,
       "--preset",
       cleanPreset
     ]);
     cleanup = parseJsonOrText(cleanupResult.stdout);
+    current = cleanupOutput;
+  }
+
+  let nestedGuideRemoval = null;
+  if (removeNestedGuidesPreset) {
+    const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+    const nestedOutput = formatPreset ? path.join(tempDir, "nested-guides-removed-before-format.hwp") : output;
+    const nestedResult = await runNode([
+      path.join(scriptDir, "hwp_remove_nested_guides.mjs"),
+      current,
+      nestedOutput,
+      "--preset",
+      removeNestedGuidesPreset
+    ]);
+    nestedGuideRemoval = parseJsonOrText(nestedResult.stdout);
+    current = nestedOutput;
+  }
+
+  let formatting = null;
+  if (formatPreset) {
+    const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+    const formatResult = await runNode([
+      path.join(scriptDir, "hwp_format_overview.mjs"),
+      current,
+      output,
+      "--preset",
+      formatPreset
+    ]);
+    formatting = parseJsonOrText(formatResult.stdout);
   }
 
   console.log(JSON.stringify({
@@ -195,7 +238,11 @@ try {
     outputPath: output,
     cellsWritten: cellEntries.length,
     cleanPreset,
-    cleanup
+    removeNestedGuidesPreset,
+    formatPreset,
+    cleanup,
+    nestedGuideRemoval,
+    formatting
   }, null, 2));
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
