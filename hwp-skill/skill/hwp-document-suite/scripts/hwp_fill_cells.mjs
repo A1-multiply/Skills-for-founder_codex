@@ -52,7 +52,7 @@ if (!input || !output || !mapPath || args.includes("--help") || args.includes("-
   process.exit(input || output || mapPath ? 0 : 1);
 }
 
-const map = JSON.parse(await readFile(mapPath, "utf8"));
+const map = JSON.parse((await readFile(mapPath, "utf8")).replace(/^\uFEFF/, ""));
 const section = Number(map.section ?? 0);
 const parentParagraph = Number(map.parentParagraph);
 const control = Number(map.control ?? 0);
@@ -228,7 +228,9 @@ try {
       current,
       output,
       "--preset",
-      formatPreset
+      formatPreset,
+      "--parent-paragraph",
+      String(parentParagraph)
     ]);
     formatting = parseJsonOrText(formatResult.stdout);
   }

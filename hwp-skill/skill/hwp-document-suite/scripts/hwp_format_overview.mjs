@@ -11,7 +11,7 @@ const args = process.argv.slice(2);
 
 function usage() {
   console.log(`Usage:
-  node hwp_format_overview.mjs <input.hwp> <output.hwp> --preset business-plan-overview-compact
+  node hwp_format_overview.mjs <input.hwp> <output.hwp> --preset business-plan-overview-compact [--parent-paragraph 7]
 
 Purpose:
   Applies compact black non-italic formatting to known business-plan overview cells.
@@ -29,6 +29,7 @@ function readFlag(name) {
 const input = args[0];
 const output = args[1];
 const preset = readFlag("--preset");
+const parentParagraphArg = readFlag("--parent-paragraph");
 
 if (!input || !output || args.includes("--help") || args.includes("-h")) {
   usage();
@@ -43,7 +44,10 @@ const core = await loadRhwpCore();
 const doc = new core.HwpDocument(new Uint8Array(await readFile(input)));
 
 try {
-  const table = { section: 0, parentParagraph: 7, control: 0 };
+  const table = { section: 0, parentParagraph: Number(parentParagraphArg ?? 7), control: 0 };
+  if (!Number.isInteger(table.parentParagraph)) {
+    throw new Error("--parent-paragraph must be an integer");
+  }
   const textCells = [1, 3, 5, 7, 9, 11, 13];
   const compactProps = {
     fontFamily: "휴먼명조",

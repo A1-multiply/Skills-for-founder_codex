@@ -14,6 +14,8 @@ const args = process.argv.slice(2);
 function usage() {
   console.log(`Usage:
   node hwp_remove_nested_guides.mjs <input.hwp> <output.hwp> --preset business-plan-overview
+  node hwp_remove_nested_guides.mjs <input.hwp> <output.hwp> --preset business-plan-overview-only
+  node hwp_remove_nested_guides.mjs <input.hwp> <output.hwp> --preset business-plan-all-guides
 
 Purpose:
   Removes leftover nested guide tables from known HWP business-plan overview cells.
@@ -37,12 +39,12 @@ if (!input || !output || args.includes("--help") || args.includes("-h")) {
   process.exit(input || output ? 0 : 1);
 }
 
-if (preset !== "business-plan-overview") {
-  throw new Error("Supported preset: business-plan-overview");
+if (!["business-plan-overview", "business-plan-overview-only", "business-plan-all-guides"].includes(preset)) {
+  throw new Error("Supported presets: business-plan-overview, business-plan-overview-only, business-plan-all-guides");
 }
 
 if (process.platform === "win32") {
-  await removeWithHancomCom(input, output);
+  await removeWithHancomCom(input, output, preset);
   process.exit(0);
 }
 
@@ -219,7 +221,9 @@ function pathToFileUrl(filePath) {
   return `file:///${path.resolve(filePath).replace(/\\/g, "/").replace(/ /g, "%20")}`;
 }
 
-function removeWithHancomCom(inputPath, outputPath) {
+function removeWithHancomCom(inputPath, outputPath, presetName) {
+  const startIndex = presetName === "business-plan-overview-only" ? 7 : (presetName === "business-plan-all-guides" ? 12 : 13);
+  const endIndex = presetName === "business-plan-overview-only" ? 15 : 21;
   const script = `
 $ErrorActionPreference = 'Stop'
 $inputPath = ${quotePowerShellString(path.resolve(inputPath))}
@@ -234,7 +238,7 @@ $ctrls = @()
 $ctrl = $hwp.HeadCtrl
 $index = 0
 while ($null -ne $ctrl -and $index -lt 120) {
-  if ($index -ge 13 -and $index -le 21 -and $ctrl.CtrlID -eq 'tbl') {
+  if ($index -ge ${startIndex} -and $index -le ${endIndex} -and $ctrl.CtrlID -eq 'tbl') {
     $ctrls += $ctrl
   }
   $ctrl = $ctrl.Next

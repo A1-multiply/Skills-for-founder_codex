@@ -42,8 +42,16 @@ if (preset !== "pork-grill-overview" && !layoutMapPath) {
   throw new Error("Supported preset: pork-grill-overview, or pass --layout-map <json>");
 }
 
+const layoutMap = layoutMapPath ? await readLayoutMap(layoutMapPath) : null;
+
+if (layoutMap?.cells) {
+  const result = await layoutCellsWithRhwp(input, output, layoutMap);
+  console.log(JSON.stringify(result, null, 2));
+  process.exit(0);
+}
+
 if (process.platform === "win32") {
-  const result = await layoutWithHancomCom(input, output, layoutMapPath ? await readLayoutReplacements(layoutMapPath) : null);
+  const result = await layoutWithHancomCom(input, output, layoutMap ? readLayoutReplacementsFromMap(layoutMap) : null);
   console.log(JSON.stringify(result, null, 2));
   process.exit(0);
 }
@@ -54,13 +62,13 @@ const doc = new core.HwpDocument(new Uint8Array(await readFile(input)));
 try {
   const table = { section: 0, parentParagraph: 7, control: 0 };
   const cells = {
-    1: ["삼겹살 무한회전 그릴 시스템"],
-    3: ["음식점 주방 자동화 / 고기구이 조리장비"],
+    1: ["제품 자동화 장치 시스템"],
+    3: ["음식점 주방 자동화 / 원료구이 조리장비"],
     5: [
-      "[ 자동 회전으로 삼겹살 굽기 품질을 표준화하는 업소용 그릴 ]",
-      "- 삼겹살을 일정 속도로 회전시켜 앞뒤를 균일하게 조리",
+      "[ 자동 회전으로 제품 굽기 품질을 표준화하는 업소용 장치 ]",
+      "- 제품을 일정 속도로 회전시켜 앞뒤를 균일하게 조리",
       "- 직원 뒤집기 업무, 굽기 편차, 기름 튐을 동시에 감소",
-      "- 핵심 기능: 회전 모터, 고기 고정 홀더, 기름 배출 구조",
+      "- 핵심 기능: 회전 모터, 원료 고정 홀더, 기름 배출 구조",
       "- 기대효과: 인력 부담 감소, 테이블 회전율 개선, 고객 불만 감소"
     ],
     7: [
@@ -78,17 +86,17 @@ try {
       "- 안전성, 세척성, 내구성 피드백 반영 후 양산 구조 개선"
     ],
     11: [
-      "[ 삼겹살 전문점 시장 진입 후 렌탈·유지보수 모델로 확장 ]",
+      "[ 제품 전문점 시장 진입 후 렌탈·유지보수 모델로 확장 ]",
       "- 2026년: 시제품 완성, 테스트 매장 확보, 현장 검증 데이터 확보",
-      "- 2027년: 삼겹살 전문점·무한리필 매장 대상 판매/렌탈 시작",
+      "- 2027년: 제품 전문점·무한리필 매장 대상 판매/렌탈 시작",
       "- 2028년: 프랜차이즈 제휴, 유지보수 계약, 소모품 매출 확대",
-      "- 장기적으로 고기 종류별 모듈을 추가해 구이 자동화 라인업 구축",
+      "- 장기적으로 원료 종류별 모듈을 추가해 구이 자동화 라인업 구축",
       "　　　　　　　2030년까지 연매출 30억원 달성 목표"
     ],
     13: [
       "[ 현장 문제 정의, 기구 설계, 제어 개발, 매장 검증 중심의 실행 체계 ]",
       "- 대표자: 고객 문제 정의, 제품 기획, 사업화 전략 총괄",
-      "- 기구 협력사: 회전 구조, 고기 고정 장치, 기름 배출부 설계",
+      "- 기구 협력사: 회전 구조, 원료 고정 장치, 기름 배출부 설계",
       "- 전기·제어 협력사: 모터 제어, 속도 안정화, 안전 장치 개발",
       "- 테스트 매장: 조리 품질, 작업 효율, 고객 반응 데이터 제공"
     ]
@@ -155,9 +163,10 @@ function overwriteCellParagraphs(doc, table, cell, lines) {
 }
 
 function formatCell(doc, table, cell, lines) {
+  const profile = getCellFitProfile(lines.length);
   const baseProps = {
     fontFamily: "휴먼명조",
-    fontSize: cell === 1 || cell === 3 ? 950 : 850,
+    fontSize: cell === 1 || cell === 3 ? 950 : profile.fontSize,
     bold: false,
     italic: false,
     underline: false,
@@ -197,7 +206,7 @@ function formatCell(doc, table, cell, lines) {
           table.control,
           cell,
           para,
-          JSON.stringify({ align: isEmphasis ? "center" : "left", lineSpacing: 120 })
+          JSON.stringify({ align: isEmphasis ? "center" : "left", lineSpacing: profile.lineSpacing })
         ),
         "applyParaFormatInCell"
       );
@@ -205,6 +214,14 @@ function formatCell(doc, table, cell, lines) {
       // Character formatting is the required part; paragraph keys vary by build.
     }
   }
+}
+
+function getCellFitProfile(lineCount) {
+  if (lineCount >= 10) return { fontSize: 680, lineSpacing: 108 };
+  if (lineCount >= 9) return { fontSize: 720, lineSpacing: 112 };
+  if (lineCount >= 7) return { fontSize: 780, lineSpacing: 118 };
+  if (lineCount >= 5) return { fontSize: 830, lineSpacing: 128 };
+  return { fontSize: 880, lineSpacing: 138 };
 }
 
 function parseJsonResult(raw, op) {
@@ -300,7 +317,14 @@ function quotePowerShellString(value) {
 }
 
 async function readLayoutReplacements(mapPath) {
-  const map = JSON.parse(await readFile(mapPath, "utf8"));
+  return readLayoutReplacementsFromMap(await readLayoutMap(mapPath));
+}
+
+async function readLayoutMap(mapPath) {
+  return JSON.parse((await readFile(mapPath, "utf8")).replace(/^\uFEFF/, ""));
+}
+
+function readLayoutReplacementsFromMap(map) {
   const replacements = map.layoutReplacements || map.replacements;
   if (!Array.isArray(replacements) || replacements.length === 0) {
     throw new Error("--layout-map requires layoutReplacements or replacements array");
@@ -310,22 +334,59 @@ async function readLayoutReplacements(mapPath) {
     const find = String(item.find ?? "");
     const replaceValue = item.replace ?? item.lines;
     const replace = Array.isArray(replaceValue) ? replaceValue.join("\r\n") : String(replaceValue ?? "");
-    if (!find || !replace) {
+    if (!find || replaceValue === undefined) {
       throw new Error(`Invalid layout replacement at index ${index}`);
     }
     return { find, replace };
   });
 }
 
+async function layoutCellsWithRhwp(inputPath, outputPath, map) {
+  const core = await loadRhwpCore();
+  const doc = new core.HwpDocument(new Uint8Array(await readFile(inputPath)));
+  const table = {
+    section: Number(map.section ?? 0),
+    parentParagraph: Number(map.parentParagraph),
+    control: Number(map.control ?? 0)
+  };
+
+  if (!Number.isInteger(table.parentParagraph)) {
+    throw new Error("layout-map with cells requires integer parentParagraph");
+  }
+
+  let paragraphsWritten = 0;
+  try {
+    for (const [cellKey, value] of Object.entries(map.cells ?? {})) {
+      const cell = Number(cellKey);
+      if (!Number.isInteger(cell)) throw new Error(`Cell key must be an integer: ${cellKey}`);
+      const rawLines = Array.isArray(value)
+        ? value
+        : String(typeof value === "object" && value !== null ? value.text ?? "" : value).split(/\r?\n/);
+      const lines = rawLines.map((line) => String(line).trimEnd()).filter((line) => line.trim().length > 0);
+      if (!lines.length) continue;
+      overwriteCellParagraphs(doc, table, cell, lines);
+      paragraphsWritten += lines.length;
+      formatCell(doc, table, cell, lines);
+    }
+
+    const rawOutput = process.platform === "win32" ? path.join(os.tmpdir(), `hwp-layout-${Date.now()}.hwp`) : outputPath;
+    await writeFile(rawOutput, Buffer.from(doc.exportHwp()));
+    const normalized = process.platform === "win32" ? await hancomResave(rawOutput, outputPath) : null;
+    return { ok: true, method: "rhwp-cell-paragraph-layout", outputPath, paragraphsWritten, normalized };
+  } finally {
+    doc.free();
+  }
+}
+
 function layoutWithHancomCom(inputPath, outputPath, customReplacements = null) {
   const replacements = customReplacements || [
     {
-      find: "[ 자동 회전으로 삼겹살 굽기 품질을 표준화하는 업소용 그릴 ] - 삼겹살을 일정 속도로 회전시켜 앞뒤를 균일하게 조리 - 직원 뒤집기 업무, 굽기 편차, 기름 튐을 동시에 감소 - 핵심 기능: 회전 모터, 고기 고정 홀더, 기름 배출 구조 - 기대효과: 인력 부담 감소, 테이블 회전율 개선, 고객 불만 감소",
+      find: "[ 자동 회전으로 제품 굽기 품질을 표준화하는 업소용 장치 ] - 제품을 일정 속도로 회전시켜 앞뒤를 균일하게 조리 - 직원 뒤집기 업무, 굽기 편차, 기름 튐을 동시에 감소 - 핵심 기능: 회전 모터, 원료 고정 홀더, 기름 배출 구조 - 기대효과: 인력 부담 감소, 테이블 회전율 개선, 고객 불만 감소",
       replace: [
-        "[ 자동 회전으로 삼겹살 굽기 품질을 표준화하는 업소용 그릴 ]",
-        "- 삼겹살을 일정 속도로 회전시켜 앞뒤를 균일하게 조리",
+        "[ 자동 회전으로 제품 굽기 품질을 표준화하는 업소용 장치 ]",
+        "- 제품을 일정 속도로 회전시켜 앞뒤를 균일하게 조리",
         "- 직원 뒤집기 업무, 굽기 편차, 기름 튐을 동시에 감소",
-        "- 핵심 기능: 회전 모터, 고기 고정 홀더, 기름 배출 구조",
+        "- 핵심 기능: 회전 모터, 원료 고정 홀더, 기름 배출 구조",
         "- 기대효과: 인력 부담 감소, 테이블 회전율 개선, 고객 불만 감소"
       ].join("\r\n")
     },
@@ -350,22 +411,22 @@ function layoutWithHancomCom(inputPath, outputPath, customReplacements = null) {
       ].join("\r\n")
     },
     {
-      find: "[ 삼겹살 전문점 시장 진입 후 렌탈·유지보수 모델로 확장 ] - 2026년: 시제품 완성, 테스트 매장 확보, 현장 검증 데이터 확보 - 2027년: 삼겹살 전문점·무한리필 매장 대상 판매/렌탈 시작 - 2028년: 프랜차이즈 제휴, 유지보수 계약, 소모품 매출 확대 - 장기적으로 고기 종류별 모듈을 추가해 구이 자동화 라인업 구축",
+      find: "[ 제품 전문점 시장 진입 후 렌탈·유지보수 모델로 확장 ] - 2026년: 시제품 완성, 테스트 매장 확보, 현장 검증 데이터 확보 - 2027년: 제품 전문점·무한리필 매장 대상 판매/렌탈 시작 - 2028년: 프랜차이즈 제휴, 유지보수 계약, 소모품 매출 확대 - 장기적으로 원료 종류별 모듈을 추가해 구이 자동화 라인업 구축",
       replace: [
-        "[ 삼겹살 전문점 시장 진입 후 렌탈·유지보수 모델로 확장 ]",
+        "[ 제품 전문점 시장 진입 후 렌탈·유지보수 모델로 확장 ]",
         "- 2026년: 시제품 완성, 테스트 매장 확보, 현장 검증 데이터 확보",
-        "- 2027년: 삼겹살 전문점·무한리필 매장 대상 판매/렌탈 시작",
+        "- 2027년: 제품 전문점·무한리필 매장 대상 판매/렌탈 시작",
         "- 2028년: 프랜차이즈 제휴, 유지보수 계약, 소모품 매출 확대",
-        "- 장기적으로 고기 종류별 모듈을 추가해 구이 자동화 라인업 구축",
+        "- 장기적으로 원료 종류별 모듈을 추가해 구이 자동화 라인업 구축",
         "          2030년까지 연매출 30억원 달성 목표"
       ].join("\r\n")
     },
     {
-      find: "[ 현장 문제 정의, 기구 설계, 제어 개발, 매장 검증 중심의 실행 체계 ] - 대표자: 고객 문제 정의, 제품 기획, 사업화 전략 총괄 - 기구 협력사: 회전 구조, 고기 고정 장치, 기름 배출부 설계 - 전기·제어 협력사: 모터 제어, 속도 안정화, 안전 장치 개발 - 테스트 매장: 조리 품질, 작업 효율, 고객 반응 데이터 제공",
+      find: "[ 현장 문제 정의, 기구 설계, 제어 개발, 매장 검증 중심의 실행 체계 ] - 대표자: 고객 문제 정의, 제품 기획, 사업화 전략 총괄 - 기구 협력사: 회전 구조, 원료 고정 장치, 기름 배출부 설계 - 전기·제어 협력사: 모터 제어, 속도 안정화, 안전 장치 개발 - 테스트 매장: 조리 품질, 작업 효율, 고객 반응 데이터 제공",
       replace: [
         "[ 현장 문제 정의, 기구 설계, 제어 개발, 매장 검증 중심의 실행 체계 ]",
         "- 대표자: 고객 문제 정의, 제품 기획, 사업화 전략 총괄",
-        "- 기구 협력사: 회전 구조, 고기 고정 장치, 기름 배출부 설계",
+        "- 기구 협력사: 회전 구조, 원료 고정 장치, 기름 배출부 설계",
         "- 전기·제어 협력사: 모터 제어, 속도 안정화, 안전 장치 개발",
         "- 테스트 매장: 조리 품질, 작업 효율, 고객 반응 데이터 제공"
       ].join("\r\n")
@@ -401,7 +462,15 @@ function Invoke-AllReplace([string]$find, [string]$replace) {
   }
 }
 
-function Apply-OverviewTextStyle([string]$text) {
+function Get-OverviewFitProfile([int]$lineCount) {
+  if ($lineCount -ge 10) { return @{ Height = 620; LineSpacing = 70; TopSpacing = 35 } }
+  if ($lineCount -ge 9) { return @{ Height = 670; LineSpacing = 74; TopSpacing = 40 } }
+  if ($lineCount -ge 7) { return @{ Height = 730; LineSpacing = 78; TopSpacing = 45 } }
+  if ($lineCount -ge 5) { return @{ Height = 790; LineSpacing = 82; TopSpacing = 50 } }
+  return @{ Height = 850; LineSpacing = 86; TopSpacing = 55 }
+}
+
+function Apply-OverviewTextStyle([string]$text, [int]$height, [int]$lineSpacing, [int]$prevSpacing) {
   if ([string]::IsNullOrWhiteSpace($text)) { return $false }
   try { $hwp.SetPos(0, 0, 0) | Out-Null } catch {}
   $act = $hwp.CreateAction('RepeatFind')
@@ -419,16 +488,26 @@ function Apply-OverviewTextStyle([string]$text) {
     $charSet.SetItem('TextColor', 0) | Out-Null
     $charSet.SetItem('Italic', 0) | Out-Null
     $charSet.SetItem('Bold', 0) | Out-Null
-    $charSet.SetItem('Height', 850) | Out-Null
+    $charSet.SetItem('Height', $height) | Out-Null
+    foreach ($spacingKey in @('SpacingHangul', 'SpacingLatin', 'SpacingHanja', 'SpacingJapanese', 'SpacingOther', 'SpacingSymbol', 'SpacingUser')) {
+      try { $charSet.SetItem($spacingKey, 0) | Out-Null } catch {}
+    }
+    foreach ($ratioKey in @('RatioHangul', 'RatioLatin', 'RatioHanja', 'RatioJapanese', 'RatioOther', 'RatioSymbol', 'RatioUser')) {
+      try { $charSet.SetItem($ratioKey, 100) | Out-Null } catch {}
+    }
     $charAct.Execute($charSet) | Out-Null
-    try {
-      $paraAct = $hwp.CreateAction('ParagraphShape')
-      $paraSet = $paraAct.CreateSet()
-      $paraAct.GetDefault($paraSet) | Out-Null
-      $paraSet.SetItem('AlignType', 0) | Out-Null
-      $paraSet.SetItem('LineSpacing', 110) | Out-Null
-      $paraAct.Execute($paraSet) | Out-Null
-    } catch {}
+    foreach ($paraActionName in @('ParagraphShape', 'ParaShape')) {
+      try {
+        $paraAct = $hwp.CreateAction($paraActionName)
+        $paraSet = $paraAct.CreateSet()
+        $paraAct.GetDefault($paraSet) | Out-Null
+        $paraSet.SetItem('AlignType', 0) | Out-Null
+        $paraSet.SetItem('LineSpacing', $lineSpacing) | Out-Null
+        $paraSet.SetItem('PrevSpacing', $prevSpacing) | Out-Null
+        $paraSet.SetItem('NextSpacing', 0) | Out-Null
+        $paraAct.Execute($paraSet) | Out-Null
+      } catch {}
+    }
     return $true
   } catch {
     return $false
@@ -441,8 +520,12 @@ $styled = 0
 foreach ($pair in $pairs) {
   $attempted += 1
   if (Invoke-AllReplace $pair.find $pair.replace) { $reportedSuccess += 1 }
-  foreach ($line in ([string]$pair.replace -split "\\r?\\n")) {
-    if (Apply-OverviewTextStyle $line) { $styled += 1 }
+  $lines = @([string]$pair.replace -split "\\r?\\n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+  $profile = Get-OverviewFitProfile $lines.Count
+  for ($lineIndex = 0; $lineIndex -lt $lines.Count; $lineIndex += 1) {
+    $line = $lines[$lineIndex]
+    $prevSpacing = if ($lineIndex -eq 0) { $profile.TopSpacing } else { 0 }
+    if (Apply-OverviewTextStyle $line $profile.Height $profile.LineSpacing $prevSpacing) { $styled += 1 }
   }
 }
 

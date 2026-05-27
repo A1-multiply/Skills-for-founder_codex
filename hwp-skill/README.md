@@ -1,121 +1,72 @@
-# HWP 스킬 패키지
+# HWP 창업아이템 개요 작성 스킬
 
-Codex에서 한컴오피스 한글 문서(`.hwp`, `.hwpx`, `.hwpml`)를 읽고, 분석하고, 수정하고, 정해진 양식까지 채울 수 있게 만든 스킬 패키지입니다.
+한컴오피스 한글 문서(`.hwp`, `.hwpx`) 중 정부지원사업 사업계획서의
+`창업 아이템 개요(요약)` 표를 읽고, 분석하고, 심사위원이 빠르게 이해할 수 있는
+개조식 요약으로 채우는 Codex 스킬입니다.
 
-## 폴더 역할
+현재 기본 방향은 **사업계획서 전체 작성이 아니라 개요표 전문 작성**입니다.
+본문 세부내용은 나중에 확장하고, 우선 첫 장 요약표의 설득력과 가독성에 집중합니다.
 
-| 폴더 | 역할 |
+## 핵심 기능
+
+| 기능 | 역할 |
 | --- | --- |
-| `skill/hwp-document-suite/` | Codex에 설치되는 실제 스킬 본체 |
-| `docs/` | 사람이 읽는 사용법과 구조 설명 |
-| `examples/` | 예시 프롬프트와 JSON 매핑 파일 |
-| `tools/` | 명령어 치트시트 |
+| HWP 구조 분석 | 개요표 위치, 셀 구조, 명칭/범주/아이템 개요/문제 인식/실현 가능성/성장전략/팀 구성/이미지 칸을 확인 |
+| 개요표 작성 | 사용자의 아이템 설명을 받아 한 페이지 안에 들어가는 개조식 요약 작성 |
+| 카테고리 판단 | 양식의 `범주`, `분야`, `제품군`, `업종` 표현이 달라도 아이템에 맞는 분류를 추론 |
+| 기본 작성값 | 별도 지시가 없으면 `개조식`, `검정색`, `비기울임`, `한 페이지 내`, `표 안 균형 배치`로 진행 |
+| 스타일 확인 질문 | 사용자가 시간을 주면 평균 줄 수, 연도 표기 여부, 정렬, 글씨 크기, 개조식/줄글 여부, 강조색, 시작 여백, 이미지 생성 여부를 먼저 확인 |
+| 팀 구성 작성 | 실제 수행 가능성이 보이도록 분야별 경력자·협력자·파트너를 역할과 경력 중심으로 작성 |
+| 이미지 생성 | 이미지 칸이 있으면 생성 여부를 묻고, 요청 시 1:1 이미지를 만들어 `images/` 폴더에 저장 |
+| 예시문 제거 | 파란 안내문, 예시문, 빈 중첩 안내표를 제거하고 실제 작성 내용만 남김 |
+| 한컴 검증 | 최종 HWP는 한컴 COM 저장/열기 검증을 거쳐 손상/보안 경고를 줄임 |
 
-## 기능 역할
+## 기본 작성 방식
 
-| 기능 | 하는 일 | 사용할 때 |
-| --- | --- | --- |
-| 문서 읽기 | HWP/HWPX/HWPML 내용을 Markdown으로 추출 | 파일 내용이 무엇인지 빠르게 파악할 때 |
-| 구조 분석 | JSON 블록, 제목, 표, 이미지, 메타데이터, 컨트롤 구조 추출 | 문서 전체 구조와 표 위치를 찾아야 할 때 |
-| 요약 | 추출한 내용을 바탕으로 짧게 정리 | 한 장 분석, 핵심 요약이 필요할 때 |
-| 기본 편집 | 검색, 치환, 삽입, 삭제, 표 생성 | HWP 파일 내용을 안전하게 수정할 때 |
-| 표 셀 편집 | 특정 HWP 표 셀에 텍스트 입력 | 신청서, 사업계획서 양식 표를 채울 때 |
-| 양식 자동 채우기 | JSON 매핑으로 여러 표 셀을 한 번에 작성 | 반복되는 양식 작성 작업을 자동화할 때 |
-| 예시문 제거 | 양식 안의 파란색 예시/가이드 문구를 공백 처리 | 기존 예시가 남지 않게 최종 작성본을 만들 때 |
-| 중첩 안내 표 제거 | 예시문이 있던 빈 점선 표 박스를 삭제 | 최종 작성본에서 빈 안내 박스까지 없애야 할 때 |
-| 개요표 포맷 정리 | 검정색, 비기울임, 작은 글씨로 정리 | 안내문 스타일 상속 없이 제출용처럼 보이게 할 때 |
-| 결과 검증 | 수정한 파일을 다시 읽거나 렌더링해서 반영 확인 | 편집이나 양식 채우기 후 확인할 때 |
+- 기본값: 개조식
+- 문장 구조: `[핵심 가치 제목]` + `- 핵심 bullet 3~4개`
+- 개조식은 반드시 실제 줄바꿈으로 작성합니다. 제목과 각 bullet이 한 줄씩 보여야 하며, 표가 넘칠 것 같다고 한 문단으로 이어 붙이지 않습니다.
+- 줄간격은 자연스럽게 읽히는 수준을 기본으로 둡니다. 줄 수가 많으면 먼저 문장을 줄이고, 필요할 때만 글씨 크기·줄간격을 조금 조정합니다.
+- 글씨: 검정색, 비기울임, 기본 굵기
+- 정렬: 표 안 왼쪽 정렬, 필요 시 셀 안 위아래 여백 균형 조정
+- 분량: 한 페이지를 넘기지 않도록 문장 수와 글씨 크기 조정
+- 평균 줄 수: 별도 요청이 없으면 셀당 4줄 안팎
+- 연도 표기: 별도 요청이 없으면 단계형 전략을 기본으로 하고, 필요한 경우에만 연도 사용
+- 셀 시작 여백: 기본적으로 모든 작성 셀에 같은 작은 여백 적용
+- 색상: 기본적으로 사용하지 않음. 사용자가 요청하거나 정말 필요한 강조 1줄만 제한적으로 사용
+- 이미지 칸: 실제 이미지가 없으면 삭제하지 않고 `제품 예시`, `사용 장면`, `작동 구조`, `고객 흐름` 같은 삽입 대상을 적음
+- 이미지 생성: 사용자가 원하면 1:1 비율 이미지를 생성해 `images/` 폴더에 저장하고 표에 삽입 또는 삽입 대상 표시
 
-## 주요 파일 역할
+## 사용 예시
+
+```text
+이 개요부분 HWP에 내 아이템 "사용자 아이템"으로 창업아이템 개요를 작성해줘.
+별도 스타일 지시 없으면 기본 개조식으로 해.
+```
+
+```text
+개조식 말고 줄글 느낌으로, 글씨는 작게 해서 한 페이지 안 넘게 해.
+범주는 네가 판단해서 넣어.
+```
+
+```text
+명칭/범주/아이템 개요/문제 인식/실현 가능성/성장전략/팀 구성을 먼저 초안으로 보여줘.
+```
+
+## 주요 파일
 
 | 파일 | 역할 |
 | --- | --- |
 | `skill/hwp-document-suite/SKILL.md` | Codex가 스킬 사용 시 읽는 핵심 지침 |
-| `skill/hwp-document-suite/scripts/hwp_inspect.mjs` | HWP 파일 읽기, 변환, 구조 요약 |
-| `skill/hwp-document-suite/scripts/hwp_edit.mjs` | `k-skill-rhwp` 편집 명령 실행 래퍼 |
-| `skill/hwp-document-suite/scripts/hwp_fill_cells.mjs` | JSON 매핑으로 HWP 표 여러 칸을 작성 |
-| `skill/hwp-document-suite/scripts/hwp_clean_text.mjs` | 예시/가이드 문구를 공백 처리 |
-| `skill/hwp-document-suite/scripts/hwp_remove_nested_guides.mjs` | 개요표 안의 빈 중첩 안내 표 삭제 |
-| `skill/hwp-document-suite/scripts/hwp_format_overview.mjs` | 개요표 글자색, 기울임, 크기 정리 |
-| `skill/hwp-document-suite/references/tooling.md` | 사용 도구와 명령어 참고 문서 |
-| `skill/hwp-document-suite/references/business-plan-forms.md` | 창업 지원사업 사업계획서 양식 작성 워크플로 |
-| `examples/business-plan-overview-cells.json` | 창업 아이템 개요 요약표 작성 예시 |
+| `skill/hwp-document-suite/scripts/hwp_inspect.mjs` | HWP 구조 분석 |
+| `skill/hwp-document-suite/scripts/hwp_fill_cells.mjs` | JSON 매핑으로 개요표 셀 작성 |
+| `skill/hwp-document-suite/scripts/hwp_layout_overview.mjs` | 개요표 문장 줄바꿈/스타일 정리 |
+| `skill/hwp-document-suite/scripts/hwp_remove_nested_guides.mjs` | 중첩 안내표 제거 |
+| `skill/hwp-document-suite/scripts/hwp_hancom_preflight.mjs` | 최종 HWP 열기 검증 |
+| `examples/business-plan-overview-only-cells.json` | 개요부분 단독 HWP용 매핑 예시 |
 
-## 설치
+## 주의
 
-현재 폴더에서 실행:
-
-```powershell
-.\install.ps1
-```
-
-macOS/Linux:
-
-```bash
-./install.sh
-```
-
-수동 설치:
-
-```text
-hwp-skill/skill/hwp-document-suite 폴더를 ~/.codex/skills/ 안에 복사
-```
-
-## Codex에서 쓰는 예시
-
-문서 읽기/분석:
-
-```text
-hwp-document-suite 써서 이 HWP 파일 전체 내용, 표, 이미지, 구조를 한 장으로 요약해줘.
-```
-
-문서 수정:
-
-```text
-hwp-document-suite 써서 이 HWP 문서에서 2025를 전부 2026으로 바꾼 새 파일 만들어줘.
-```
-
-사업계획서 양식 채우기:
-
-```text
-hwp-document-suite 써서 창업 아이템 개요 요약표를 내 아이템에 맞게 개조식으로 타이트하게 채워줘. 기존 예시문은 지워줘.
-```
-
-## 직접 실행 명령어
-
-문서 읽기와 구조 추출:
-
-```bash
-node skill/hwp-document-suite/scripts/hwp_inspect.mjs ./sample.hwp --out-dir ./out
-```
-
-HWP 편집:
-
-```bash
-node skill/hwp-document-suite/scripts/hwp_edit.mjs replace-all ./sample.hwp ./out/edited.hwp --query 2025 --replacement 2026
-```
-
-정해진 양식 표 채우기:
-
-```bash
-node skill/hwp-document-suite/scripts/hwp_fill_cells.mjs ./sample.hwp ./out/filled.hwp --map ./examples/business-plan-overview-cells.json
-```
-
-예시문 제거만 따로 실행:
-
-```bash
-node skill/hwp-document-suite/scripts/hwp_clean_text.mjs ./filled.hwp ./out/cleaned.hwp --preset business-plan-guides
-```
-
-빈 중첩 안내 표 제거만 따로 실행:
-
-```bash
-node skill/hwp-document-suite/scripts/hwp_remove_nested_guides.mjs ./cleaned.hwp ./out/final.hwp --preset business-plan-overview
-```
-
-## 결과물 원칙
-
-- 원본 HWP/HWPX 파일은 건드리지 않습니다.
-- 수정본이나 작성본은 별도 출력 경로에 저장합니다.
-- 좌표 탐색용 임시 파일은 검증 후 삭제합니다.
-- 사업계획서 개요표는 예시 문구와 빈 중첩 안내 표까지 제거한 제출용 작성본을 목표로 합니다.
+- 사용자가 `git add`, `commit`, `push`를 명령하기 전에는 Git 작업을 하지 않습니다.
+- 최종본은 사용자가 헷갈리지 않게 하나의 HWP 파일로 정리합니다.
+- 저수준 편집 후에는 반드시 한컴 COM 재저장/검증을 거칩니다.

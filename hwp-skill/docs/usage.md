@@ -1,132 +1,160 @@
-# 사용 가이드
+# 사용법: 창업아이템 개요 전문 작성
 
-## 할 수 있는 일
+이 스킬의 기본 목적은 HWP 사업계획서 안의 `창업 아이템 개요(요약)` 표를 전문적으로 작성하는 것입니다.
+전체 사업계획서 본문, 예산, 일정표는 사용자가 따로 요청할 때만 다룹니다.
 
-- `.hwp`, `.hwpx`, `.hwpml` 파일 읽기
-- 읽기 쉬운 Markdown 추출
-- 표, 이미지, 컨트롤, 메타데이터가 포함된 JSON 구조 추출
-- 문서 요약 리포트 생성
-- HWP 파일을 원본과 분리된 새 파일로 수정
-- 텍스트 치환, 삽입, 삭제, 표 생성, 표 셀 입력
-- JSON 매핑으로 알려진 HWP 양식 표 자동 작성
-- 사업계획서 양식 안의 예시/가이드 문구 자동 공백 처리
+## 기본 흐름
 
-## 권장 흐름
+1. `hwp_inspect.mjs`로 HWP 구조를 읽습니다.
+2. 개요표 위치와 셀 좌표를 확인합니다.
+3. 사용자 아이템을 바탕으로 명칭, 범주, 아이템 개요, 문제 인식, 실현 가능성, 성장전략, 팀 구성을 작성합니다.
+4. 예시문/가이드 문구와 중첩 안내표를 제거합니다.
+5. 최종 HWP는 한컴 COM 저장/열기 검증을 거칩니다.
 
-1. 먼저 문서를 읽고 구조를 확인합니다.
-2. Markdown과 요약 파일로 내용 흐름을 파악합니다.
-3. 표와 컨트롤 위치가 중요하면 JSON을 확인합니다.
-4. 수정 전에는 검색 또는 구조 조회로 좌표를 잡습니다.
-5. 수정본은 항상 새 파일로 저장합니다.
-6. 수정한 파일을 다시 읽거나 렌더링해서 반영 여부를 확인합니다.
+## 사용자에게 확인할 것
 
-## 문서 읽기
+사용자가 세부 스타일을 정하지 않았고 시간이 있는 상황이면 아래만 짧게 확인합니다.
 
-```bash
-node skill/hwp-document-suite/scripts/hwp_inspect.mjs ./input.hwp --out-dir ./out
-```
+- 작성 방식: 개조식 / 줄글 / 혼합형
+- 평균 줄 수: 셀당 3줄 / 4줄 / 5줄 / 직접 지정
+- 년도 표기: 연도형 로드맵 / 단계형 전략 / 아이템에 맞게 판단
+- 정렬: 표 안 왼쪽 정렬 / 가운데 균형 / 원문 유지
+- 글씨 크기: 기본 / 작게 / 넉넉하게
+- 강조: 검정만 / 핵심 1줄만 파랑 또는 굵게
+- 셀 시작 여백: 약간 있음 / 없음
+- 이미지 칸: 이미지 생성 후 삽입 / 텍스트 삽입 대상만 작성
 
-생성 파일:
+사용자가 `그냥 해`, `기본값으로`, `알아서`라고 하면 아래 기본값으로 진행합니다.
+
+- 작성 방식: 개조식
+- 평균 줄 수: 셀당 4줄 안팎
+- 년도 표기: 단계형 전략을 기본으로 하고, 사용자가 요청하거나 꼭 필요할 때만 연도 사용
+- 정렬: 표 안 왼쪽 정렬
+- 글씨: 검정색, 비기울임, 기본 굵기
+- 분량: 한 페이지 안에 들어가게 조정
+- 구성: `[핵심 제목]` 1줄 + `-` bullet 최대 4개
+- 셀 시작 여백: 모든 작성 셀에 같은 정도의 작은 여백 적용
+- 이미지: 먼저 물어보고, 사용자가 그냥 진행하라고 하면 1:1 이미지 기준으로 생성
+
+### 줄바꿈 원칙
+
+- 개조식은 제목과 bullet을 실제 줄바꿈/문단으로 나눠 씁니다.
+- 표 안에 맞추려고 한 문단으로 이어 붙이면 실패입니다.
+- 줄 수가 많으면 bullet을 줄이고 글씨 크기·줄간격을 조정합니다. 줄바꿈을 없애서 해결하지 않습니다.
+- 최종 검증 때 각 셀의 제목과 bullet이 줄별로 보이는지 확인합니다.
+
+## 개요표 작성 패턴
+
+각 셀은 평가자가 10초 안에 이해할 수 있게 씁니다.
 
 ```text
-out/input.json
-out/input.md
-out/input.summary.md
+[ 핵심 가치 또는 문제 해결 결과 ]
+- 제품·서비스가 무엇인지
+- 누구의 어떤 문제를 줄이는지
+- 핵심 기능 또는 제공 혜택
+- 실행/판매/검증 방향
 ```
 
-## 편집 명령
+셀별 기준:
 
-```bash
-node skill/hwp-document-suite/scripts/hwp_edit.mjs info ./input.hwp
-node skill/hwp-document-suite/scripts/hwp_edit.mjs search ./input.hwp --query "target"
-node skill/hwp-document-suite/scripts/hwp_edit.mjs replace-all ./input.hwp ./out/edited.hwp --query "old" --replacement "new"
-node skill/hwp-document-suite/scripts/hwp_edit.mjs insert-text ./input.hwp ./out/edited.hwp --section 0 --paragraph 0 --offset 0 --text "text"
-node skill/hwp-document-suite/scripts/hwp_edit.mjs delete-text ./input.hwp ./out/edited.hwp --section 0 --paragraph 0 --offset 0 --length 4
-node skill/hwp-document-suite/scripts/hwp_edit.mjs create-table ./input.hwp ./out/table.hwp --section 0 --paragraph 1 --offset 0 --rows 2 --cols 3
-node skill/hwp-document-suite/scripts/hwp_edit.mjs set-cell-text ./input.hwp ./out/cell.hwp --section 0 --parent-paragraph 1 --control 0 --cell 0 --text "value"
-node skill/hwp-document-suite/scripts/hwp_fill_cells.mjs ./input.hwp ./out/filled.hwp --map ./examples/business-plan-overview-cells.json
+- 명칭: 짧고 직관적인 제품·서비스명
+- 범주: 양식이 `범주`, `분야`, `제품군`, `업종` 등으로 바뀌어도 아이템에 맞게 추론
+- 아이템 개요: 무엇을 누구에게 어떤 혜택으로 제공하는지
+- 문제 인식: 고객 불편, 기존 방식의 한계, 해결 필요성
+- 실현 가능성: 시제품/MVP, 구현 방식, 검증 계획, 차별성
+- 성장전략: 초기 고객/채널, 수익화 방식, 확장 경로
+- 팀 구성: 대표자 역할, 협력자/파트너, 검증 고객 또는 운영 역할
+
+## 팀 구성 작성 기준
+
+팀 구성은 추상적으로 쓰지 않습니다. 이 프로젝트를 실제로 수행할 수 있는 사람과 역할이 보이게 씁니다.
+
+좋은 구조:
+
+```text
+[ 프로젝트 수행을 위한 기획·소재·판매 검증 팀 구성 ]
+- 대표자: 제품기획·고객 문제 정의·판매 채널 운영 총괄
+- 점착소재 제조 10년 경력 협력자: 접착제 배합, 코팅지 선정, 샘플 품질 기준 수립
+- 문구 유통 7년 경력 MD: 문구점 입점 가능성, 가격대, 패키지 구성 검토
+- 온라인 문구몰 운영 5년 경력 파트너: 상세페이지, 리뷰 확보, 초기 판매 검증
 ```
 
-## 사업계획서 개요표 채우기
+주의:
 
-예비창업패키지 사업계획서의 `창업 아이템 개요(요약)` 같은 표는 JSON 매핑으로 채웁니다.
+- 정확한 소속과 실명은 사용자가 제공하지 않으면 쓰지 않습니다.
+- 대신 `몇 년 경력`, `어떤 분야`, `어떤 역할`, `왜 가능한지`를 씁니다.
+- `협력사`, `테스트 고객`처럼 뭉뚱그린 표현만 쓰지 않습니다.
+
+## 여백 기준
+
+- 기본값은 셀 시작 전에 아주 작은 여백을 주는 방식입니다.
+- 아이템 개요, 문제 인식, 실현 가능성, 성장전략, 팀 구성의 시작 여백은 모두 통일합니다.
+- 사용자가 여백 없이 하라고 하면 모든 작성 셀에서 시작 여백을 없앱니다.
+- 일부 셀만 위에 붙고 일부 셀만 내려가는 상태는 실패로 봅니다.
+
+## 이미지 칸 처리
+
+이미지 칸이 있는 개요표에서는 먼저 물어봅니다.
+
+```text
+이미지를 생성해서 넣을까요, 아니면 텍스트 삽입 대상만 적을까요?
+```
+
+기본값:
+
+- 사용자가 이미지 생성을 원하면 1:1 비율로 생성
+- `images/` 폴더를 만들고 이미지 파일을 따로 저장
+- 1번 이미지는 제품 예시 또는 패키지 이미지
+- 2번 이미지는 사용 장면, 작동 구조, 고객 흐름 이미지
+- HWP 삽입이 불가능한 환경이면 이미지 파일은 저장하고, 표 안에는 해당 이미지 제목/삽입 대상을 적음
+
+## 좌표 예시
+
+`창업아이템 개요부분.hwp`처럼 개요표만 있는 파일:
 
 ```json
 {
   "section": 0,
-  "parentParagraph": 7,
+  "parentParagraph": 1,
   "control": 0,
   "cleanPreset": "business-plan-guides",
   "removeNestedGuidesPreset": "business-plan-overview",
   "formatPreset": "business-plan-overview-compact",
   "cells": {
-    "1": "아이템명",
-    "3": "분야/분류",
+    "1": "명칭",
+    "3": "범주",
     "5": "아이템 개요",
     "7": "문제 인식",
     "9": "실현 가능성",
-    "11": "성장 전략",
+    "11": "성장전략",
     "13": "팀 구성"
   }
 }
 ```
 
-실행:
+전체 사업계획서 양식 안의 개요표:
+
+```json
+{
+  "section": 0,
+  "parentParagraph": 7,
+  "control": 0
+}
+```
+
+## 실행 예시
 
 ```bash
-node skill/hwp-document-suite/scripts/hwp_fill_cells.mjs ./template.hwp ./out/draft.hwp --map ./examples/business-plan-overview-cells.json
+node skill/hwp-document-suite/scripts/hwp_inspect.mjs ./창업아이템개요.hwp --out-dir ./out
+node skill/hwp-document-suite/scripts/hwp_remove_nested_guides.mjs ./창업아이템개요.hwp ./out/clean.hwp --preset business-plan-overview-only
+node skill/hwp-document-suite/scripts/hwp_layout_overview.mjs ./out/clean.hwp ./out/final.hwp --layout-map ./examples/business-plan-overview-only-layout.json
+node skill/hwp-document-suite/scripts/hwp_hancom_preflight.mjs ./out/final.hwp
 ```
 
-`cleanPreset`을 넣으면 표 셀 작성 후 양식 안의 예시/가이드 문구가 자동으로 공백 처리됩니다.
+## 주의
 
-`removeNestedGuidesPreset`을 넣으면 예시문이 있던 빈 중첩 안내 표까지 삭제합니다. Windows에서 한컴오피스 한글 COM 자동화를 사용하므로, 한글이 열려 있거나 보안창에 멈춰 있으면 닫고 다시 실행합니다.
-
-한컴 자동화가 파일을 열 때 뜨는 `접근 허용/모두 허용` 보안창은 스킬이 자동으로 처리합니다. 스크립트 실행 시 포함된 `FilePathCheckerModuleExample.dll`을 현재 사용자 레지스트리에 등록하고 `RegisterModule`을 호출한 뒤 파일을 엽니다. 이미 한컴이 떠 있으면 기존 프로세스에 붙어 보안창이 뜰 수 있으므로, 스킬은 한컴 프로세스가 감지될 때 파일을 열지 않고 먼저 중단합니다.
-
-보안 모듈만 먼저 확인하려면:
-
-```bash
-node skill/hwp-document-suite/scripts/hwp_hancom_preflight.mjs
-```
-
-`formatPreset`을 넣으면 개요표 작성 셀을 검정색, 비기울임, 작은 글씨로 정리합니다. 원본 파란 안내문 스타일을 상속한 채 제출하지 않도록 기본으로 사용합니다.
-
-개요표 문장은 아래 구조를 기본으로 작성합니다.
-
-```text
-[ 한 줄 가치제안 제목 ]
-
-- 제품/서비스가 하는 일
-- 고객의 어떤 문제를 줄이는지
-
-- 핵심 기능 : 작동 방식과 주요 기능
-- 고객 혜택 : 시간, 비용, 품질, 운영 효율 개선
-```
-
-문제 인식, 실현 가능성, 성장 전략도 같은 방식으로 `대괄호 제목 + 짧은 bullet + 핵심 항목` 구조를 유지합니다. 단문 한 줄만 넣지 않습니다.
-
-최종 작성본은 셀 안에서 실제 줄바꿈 개조식으로 정리합니다. 기본 구조는 `대괄호 주제 1줄 + 하이픈 항목 3~4줄`입니다.
-
-셀당 기본 구조는 `주제 1개 + 항목 최대 4개`입니다. 페이지가 넘어갈 정도로 길어지면 내용을 줄이거나 뒤쪽 세부 항목으로 분리합니다.
-
-강조가 필요하고 여백이 충분하면 한 줄만 파란색/큰 글씨로 넣습니다. 이때 왼쪽에 붙이지 말고 셀 안에서 시각적으로 가운데에 오게 배치합니다.
-
-프리셋을 명령어에서 직접 지정할 수도 있습니다.
-
-```bash
-node skill/hwp-document-suite/scripts/hwp_fill_cells.mjs ./template.hwp ./out/draft.hwp --map ./cells.json --clean-preset business-plan-guides
-```
-
-중첩 안내 표 제거를 명령어에서 직접 지정:
-
-```bash
-node skill/hwp-document-suite/scripts/hwp_fill_cells.mjs ./template.hwp ./out/draft.hwp --map ./cells.json --remove-nested-guides business-plan-overview
-```
-
-## 참고
-
-- 읽기는 `kordoc`이 처리합니다.
-- 편집은 `k-skill-rhwp`가 처리합니다.
-- 예시문 제거는 `hwp_clean_text.mjs`가 처리합니다.
-- 고급 레이아웃 진단은 upstream `rhwp`를 사용합니다.
-- HWPX 편집은 도구 지원 범위에 따라 HWP로 저장될 수 있습니다.
+- 표 안 글이 한 페이지를 넘길 것 같으면 먼저 문장을 줄이고, 그 다음 글씨 크기와 줄간격을 조정합니다.
+- 기본적으로 파란색을 쓰지 않습니다.
+- 이미지 칸은 삭제하지 않습니다. 실제 이미지가 없으면 `제품 예시`, `사용 장면`, `작동 구조`, `고객 흐름` 등 삽입 대상을 적습니다.
+- `k-skill-rhwp`로 편집한 HWP는 최종 전달 전 한컴 COM 저장 또는 검증을 거칩니다.
+- 사용자가 명령하기 전에는 `git add`, `commit`, `push`를 하지 않습니다.
