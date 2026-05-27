@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source_dir="$repo_root/hwp-document-suite"
+source_dir="$repo_root/hwp-skill/skill/hwp-document-suite"
 
 if [[ ! -d "$source_dir" ]]; then
   echo "Skill folder not found: $source_dir" >&2

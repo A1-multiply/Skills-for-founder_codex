@@ -23,13 +23,19 @@ $securityRegistryPaths = @(
   'Registry::HKEY_CURRENT_USER\\SOFTWARE\\HNC\\HwpAutomation\\Modules',
   'Registry::HKEY_CURRENT_USER\\SOFTWARE\\WOW6432Node\\HNC\\HwpAutomation\\Modules'
 )
+$securityConfigured = $false
 foreach ($securityRegistryPath in $securityRegistryPaths) {
-  if (-not (Test-Path -LiteralPath $securityRegistryPath)) {
-    New-Item -Path $securityRegistryPath -Force | Out-Null
+  if (Test-Path -LiteralPath $securityRegistryPath) {
+    foreach ($securityModuleName in $securityModuleNames) {
+      $property = Get-ItemProperty -Path $securityRegistryPath -Name $securityModuleName -ErrorAction SilentlyContinue
+      if ($null -ne $property -and $property.$securityModuleName -eq $securityDllPath) {
+        $securityConfigured = $true
+      }
+    }
   }
-  foreach ($securityModuleName in $securityModuleNames) {
-    New-ItemProperty -Path $securityRegistryPath -Name $securityModuleName -Value $securityDllPath -PropertyType String -Force | Out-Null
-  }
+}
+if (-not $securityConfigured) {
+  throw "Hancom automation security module is not configured. Run scripts/hwp_hancom_setup.mjs once, approving Hancom automation permissions, then retry."
 }
 $securityRegistered = $false
 foreach ($securityModuleName in $securityModuleNames) {
@@ -46,7 +52,7 @@ if (-not $securityRegistered) {
 `;
 }
 
-export function hancomPreflightPowerShell(metaUrl) {
+export function hancomSetupPowerShell(metaUrl) {
   const scriptDir = path.dirname(fileURLToPath(metaUrl));
   const dllPath = path.resolve(
     scriptDir,
@@ -73,6 +79,43 @@ foreach ($securityRegistryPath in $securityRegistryPaths) {
   foreach ($securityModuleName in $securityModuleNames) {
     New-ItemProperty -Path $securityRegistryPath -Name $securityModuleName -Value $securityDllPath -PropertyType String -Force | Out-Null
   }
+}
+`;
+}
+
+export function hancomPreflightPowerShell(metaUrl) {
+  const scriptDir = path.dirname(fileURLToPath(metaUrl));
+  const dllPath = path.resolve(
+    scriptDir,
+    "..",
+    "vendor",
+    "hancom-automation-security",
+    "FilePathCheckerModuleExample.dll"
+  );
+
+  return `
+$securityDllPath = ${quotePowerShellString(dllPath)}
+if (-not (Test-Path -LiteralPath $securityDllPath)) {
+  throw "Hancom automation security module is missing: $securityDllPath"
+}
+$securityModuleNames = @(${MODULE_NAMES.map(quotePowerShellString).join(", ")})
+$securityRegistryPaths = @(
+  'Registry::HKEY_CURRENT_USER\\SOFTWARE\\HNC\\HwpAutomation\\Modules',
+  'Registry::HKEY_CURRENT_USER\\SOFTWARE\\WOW6432Node\\HNC\\HwpAutomation\\Modules'
+)
+$securityConfigured = $false
+foreach ($securityRegistryPath in $securityRegistryPaths) {
+  if (Test-Path -LiteralPath $securityRegistryPath) {
+    foreach ($securityModuleName in $securityModuleNames) {
+      $property = Get-ItemProperty -Path $securityRegistryPath -Name $securityModuleName -ErrorAction SilentlyContinue
+      if ($null -ne $property -and $property.$securityModuleName -eq $securityDllPath) {
+        $securityConfigured = $true
+      }
+    }
+  }
+}
+if (-not $securityConfigured) {
+  throw "Hancom automation security module is not configured. Run scripts/hwp_hancom_setup.mjs once, approving Hancom automation permissions, then retry."
 }
 `;
 }

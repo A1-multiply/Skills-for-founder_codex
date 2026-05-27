@@ -162,29 +162,35 @@ function overwriteCellParagraphs(doc, table, cell, lines) {
   }
 }
 
-function formatCell(doc, table, cell, lines) {
+function formatCell(doc, table, cell, lines, emphasisMap = {}, fontFamily = "휴먼명조") {
   const profile = getCellFitProfile(lines.length);
+  const emphasis = getCellEmphasis(emphasisMap, cell, lines.length);
   const baseProps = {
-    fontFamily: "휴먼명조",
-    fontSize: cell === 1 || cell === 3 ? 950 : profile.fontSize,
+    fontFamily,
+    fontSize: cell === 1 || cell === 3 ? 1100 : profile.fontSize,
     bold: false,
     italic: false,
     underline: false,
     textColor: "#000000"
   };
+  const headlineProps = {
+    ...baseProps,
+    bold: true
+  };
   const emphasisProps = {
-    fontFamily: "휴먼명조",
-    fontSize: 1050,
-    bold: true,
+    fontFamily,
+    fontSize: emphasis.fontSize ?? profile.fontSize,
+    bold: emphasis.bold ?? true,
     italic: false,
     underline: false,
-    textColor: "#0000ff"
+    textColor: emphasis.color ?? "#0000ff"
   };
 
   for (let para = 0; para < lines.length; para += 1) {
     const length = doc.getCellParagraphLength(table.section, table.parentParagraph, table.control, cell, para);
     if (length <= 0) continue;
-    const isEmphasis = cell === 11 && para === lines.length - 1;
+    const isEmphasis = emphasis.enabled && para === emphasis.lineIndex;
+    const isHeadline = isBracketHeadline(lines[para]);
     parseJsonResult(
       doc.applyCharFormatInCell(
         table.section,
@@ -194,7 +200,7 @@ function formatCell(doc, table, cell, lines) {
         para,
         0,
         length,
-        JSON.stringify(isEmphasis ? emphasisProps : baseProps)
+        JSON.stringify(isEmphasis ? emphasisProps : isHeadline ? headlineProps : baseProps)
       ),
       "applyCharFormatInCell"
     );
@@ -206,7 +212,7 @@ function formatCell(doc, table, cell, lines) {
           table.control,
           cell,
           para,
-          JSON.stringify({ align: isEmphasis ? "center" : "left", lineSpacing: profile.lineSpacing })
+          JSON.stringify({ align: isEmphasis ? emphasis.align : "left", lineSpacing: profile.lineSpacing })
         ),
         "applyParaFormatInCell"
       );
@@ -216,12 +222,31 @@ function formatCell(doc, table, cell, lines) {
   }
 }
 
+function isBracketHeadline(line) {
+  return /^\s*\[[^\]]+\]\s*$/.test(String(line ?? ""));
+}
+
+function getCellEmphasis(emphasisMap, cell, lineCount) {
+  const raw = emphasisMap?.[String(cell)] ?? (cell === 11 ? { line: -1, color: "#0000ff", align: "center" } : null);
+  if (!raw) return { enabled: false };
+  const line = Number(raw.line ?? -1);
+  const lineIndex = line < 0 ? lineCount + line : line;
+  return {
+    enabled: lineIndex >= 0 && lineIndex < lineCount,
+    lineIndex,
+    color: raw.color ?? "#0000ff",
+    align: raw.align ?? "center",
+    fontSize: raw.fontSize,
+    bold: raw.bold
+  };
+}
+
 function getCellFitProfile(lineCount) {
-  if (lineCount >= 10) return { fontSize: 680, lineSpacing: 108 };
-  if (lineCount >= 9) return { fontSize: 720, lineSpacing: 112 };
-  if (lineCount >= 7) return { fontSize: 780, lineSpacing: 118 };
-  if (lineCount >= 5) return { fontSize: 830, lineSpacing: 128 };
-  return { fontSize: 880, lineSpacing: 138 };
+  if (lineCount >= 10) return { fontSize: 780, lineSpacing: 112 };
+  if (lineCount >= 9) return { fontSize: 840, lineSpacing: 118 };
+  if (lineCount >= 7) return { fontSize: 920, lineSpacing: 124 };
+  if (lineCount >= 5) return { fontSize: 1000, lineSpacing: 132 };
+  return { fontSize: 1100, lineSpacing: 140 };
 }
 
 function parseJsonResult(raw, op) {
@@ -366,7 +391,7 @@ async function layoutCellsWithRhwp(inputPath, outputPath, map) {
       if (!lines.length) continue;
       overwriteCellParagraphs(doc, table, cell, lines);
       paragraphsWritten += lines.length;
-      formatCell(doc, table, cell, lines);
+      formatCell(doc, table, cell, lines, map.emphasis ?? {}, map.fontFamily);
     }
 
     const rawOutput = process.platform === "win32" ? path.join(os.tmpdir(), `hwp-layout-${Date.now()}.hwp`) : outputPath;
@@ -463,11 +488,11 @@ function Invoke-AllReplace([string]$find, [string]$replace) {
 }
 
 function Get-OverviewFitProfile([int]$lineCount) {
-  if ($lineCount -ge 10) { return @{ Height = 620; LineSpacing = 70; TopSpacing = 35 } }
-  if ($lineCount -ge 9) { return @{ Height = 670; LineSpacing = 74; TopSpacing = 40 } }
-  if ($lineCount -ge 7) { return @{ Height = 730; LineSpacing = 78; TopSpacing = 45 } }
-  if ($lineCount -ge 5) { return @{ Height = 790; LineSpacing = 82; TopSpacing = 50 } }
-  return @{ Height = 850; LineSpacing = 86; TopSpacing = 55 }
+  if ($lineCount -ge 10) { return @{ Height = 780; LineSpacing = 78; TopSpacing = 35 } }
+  if ($lineCount -ge 9) { return @{ Height = 840; LineSpacing = 82; TopSpacing = 40 } }
+  if ($lineCount -ge 7) { return @{ Height = 920; LineSpacing = 86; TopSpacing = 45 } }
+  if ($lineCount -ge 5) { return @{ Height = 1000; LineSpacing = 90; TopSpacing = 50 } }
+  return @{ Height = 1100; LineSpacing = 96; TopSpacing = 55 }
 }
 
 function Apply-OverviewTextStyle([string]$text, [int]$height, [int]$lineSpacing, [int]$prevSpacing) {

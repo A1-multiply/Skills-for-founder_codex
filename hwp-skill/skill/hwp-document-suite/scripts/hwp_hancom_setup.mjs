@@ -1,24 +1,19 @@
 #!/usr/bin/env node
 import { execFile } from "node:child_process";
-import { hancomPreflightPowerShell, hancomSetupPowerShell } from "./hwp_hancom_security.mjs";
-
-const args = process.argv.slice(2);
-const allowExistingHwp = args.includes("--allow-existing-hwp");
-const setup = args.includes("--setup");
+import { hancomSetupPowerShell } from "./hwp_hancom_security.mjs";
 
 function usage() {
   console.log(`Usage:
-  node hwp_hancom_preflight.mjs [--allow-existing-hwp]
-  node hwp_hancom_preflight.mjs --setup
+  node scripts/hwp_hancom_setup.mjs
 
 Purpose:
-  Checks that the Hancom automation security module was configured by setup.
-  Use --setup or scripts/hwp_hancom_setup.mjs once to write the HKCU registry
-  entries intentionally.
+  One-time Hancom automation setup. Registers the bundled FilePathCheckDLL
+  module in HKCU so later HWP COM tasks can open/save files without repeated
+  registry writes or Hancom file-access warning dialogs.
 `);
 }
 
-if (args.includes("--help") || args.includes("-h")) {
+if (process.argv.includes("--help") || process.argv.includes("-h")) {
   usage();
   process.exit(0);
 }
@@ -30,10 +25,10 @@ if (process.platform !== "win32") {
 
 const script = `
 $ErrorActionPreference = 'Stop'
-${setup ? hancomSetupPowerShell(import.meta.url) : hancomPreflightPowerShell(import.meta.url)}
+${hancomSetupPowerShell(import.meta.url)}
 $existing = @(Get-Process Hwp -ErrorAction SilentlyContinue)
-if ($existing.Count -gt 0 -and -not ${allowExistingHwp ? "$true" : "$false"}) {
-  throw "Existing Hwp.exe process detected. Close Hancom first, or rerun with --allow-existing-hwp if you intentionally want to reuse it."
+if ($existing.Count -gt 0) {
+  throw "Existing Hwp.exe process detected. Close Hancom first, then rerun setup."
 }
 $hwp = New-Object -ComObject HWPFrame.HwpObject
 $hwp.SetMessageBoxMode(0x00020000) | Out-Null
@@ -52,8 +47,8 @@ if (-not $registered) {
 }
 Write-Output (@{
   ok = $true
-  securityModuleRegistered = $true
-  setup = ${setup ? "$true" : "$false"}
+  securityModuleConfigured = $true
+  registryScope = 'HKCU'
   existingHwpCount = $existing.Count
 } | ConvertTo-Json -Compress)
 `;
