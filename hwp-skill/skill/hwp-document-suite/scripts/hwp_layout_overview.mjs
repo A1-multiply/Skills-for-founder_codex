@@ -387,7 +387,7 @@ async function layoutCellsWithRhwp(inputPath, outputPath, map) {
       const rawLines = Array.isArray(value)
         ? value
         : String(typeof value === "object" && value !== null ? value.text ?? "" : value).split(/\r?\n/);
-      const lines = rawLines.map((line) => String(line).trimEnd()).filter((line) => line.trim().length > 0);
+      const lines = normalizeCellLines(cell, rawLines);
       if (!lines.length) continue;
       overwriteCellParagraphs(doc, table, cell, lines);
       paragraphsWritten += lines.length;
@@ -401,6 +401,19 @@ async function layoutCellsWithRhwp(inputPath, outputPath, map) {
   } finally {
     doc.free();
   }
+}
+
+function normalizeCellLines(cell, rawLines) {
+  const lines = rawLines.map((line) => String(line).trimEnd()).filter((line) => line.trim().length > 0);
+  if (cell !== 3) return lines;
+  return [compactCategoryLabel(lines.join(" "))].filter(Boolean);
+}
+
+function compactCategoryLabel(text) {
+  const normalized = String(text ?? "").replace(/\s+/g, " ").trim();
+  if (!normalized) return "";
+  const firstChunk = normalized.split(/[\/|,·ㆍ]/)[0]?.trim() || normalized;
+  return firstChunk.replace(/\s*상품$/u, "").trim();
 }
 
 function layoutWithHancomCom(inputPath, outputPath, customReplacements = null) {

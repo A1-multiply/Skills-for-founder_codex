@@ -59,6 +59,7 @@ Default writing rules:
 - Default: concise Korean bullet style, 11pt base font, black, non-italic, natural line spacing, slight consistent top padding, one page max.
 - Ask the desired font only when the user is setting style. If not specified, use the same font as prior generated overview files: `휴먼명조`.
 - Keep font family consistent across all filled cells and emphasis lines. If a layout map sets `fontFamily`, use it for every line.
+- Category/form label cell (`범주`, `분야`, `제품군`, `업종`) is not an explanation area. Write one short category phrase on one line only, e.g. `캠핑 간편식`, `디저트 음료`, `문구 소품`, `주방 장비`. Do not use long slash chains.
 - Each content cell: `[핵심 제목]` + separate bullet lines. Never collapse bullets into one paragraph.
 - Always make the bracket headline line (`[ ... ]`) bold, with the same font family and normal black color unless the user explicitly requests a different style.
 - If crowded: shorten bullets first; then reduce inner margins/blank areas consistently; then reduce font/line spacing slightly. Do not make lines overlap.
