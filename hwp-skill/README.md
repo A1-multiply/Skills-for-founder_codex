@@ -19,6 +19,7 @@
 | 팀 구성 작성 | 실제 수행 가능성이 보이도록 분야별 경력자·협력자·파트너를 역할과 경력 중심으로 작성 |
 | 이미지 생성 | 이미지 칸이 있으면 생성 여부를 묻고, 요청 시 1:1 이미지를 만들어 `images/` 폴더에 저장 |
 | 예시문 제거 | 파란 안내문, 예시문, 빈 중첩 안내표를 제거하고 실제 작성 내용만 남김 |
+| 페이지 맞춤 | 제목·양식 글씨는 건드리지 않고, 표 위치/오프셋/셀 안 여백만 조정해 한 페이지 안에 맞춤 |
 | 한컴 검증 | 최종 HWP는 한컴 COM 저장/열기 검증을 거쳐 손상/보안 경고를 줄임 |
 
 ## 기본 작성 방식
@@ -32,13 +33,19 @@
 - 범주/분야/제품군/업종 칸: 설명문 금지, `/`로 긴 문구 금지, `캠핑 간편식`처럼 한 줄 카테고리만 작성
 - 정렬: 표 안 왼쪽 정렬, 필요 시 셀 안 위아래 여백 균형 조정
 - 분량: 한 페이지를 넘기지 않도록 문장 수, 여백, 글씨 크기 조정
+- 표 밖 제목·섹션명·양식 라벨은 원본 글씨 크기와 스타일 그대로 보존하고, 넘침 문제는 표 안에서만 해결
+- 제목만 앞 페이지에 남고 표가 다음 페이지나 오른쪽으로 밀리면 제목을 줄이지 말고 `hwp_fit_overview_page.mjs`로 표 오프셋을 정리
 - 평균 줄 수: 별도 요청이 없으면 셀당 4줄 안팎
 - 연도 표기: 별도 요청이 없으면 단계형 전략을 기본으로 하고, 필요한 경우에만 연도 사용
 - 셀 시작 여백: 기본적으로 모든 작성 셀에 같은 작은 여백 적용
 - 색상: 기본적으로 사용하지 않음. 사용자가 요청하거나 정말 필요한 강조 1줄만 제한적으로 사용
 - 이미지 칸: 실제 이미지가 없으면 삭제하지 않고 `제품 예시`, `사용 장면`, `작동 구조`, `고객 흐름` 같은 삽입 대상을 적음
 - 빈 칸/이미지 칸 때문에 여백이 과하게 남으면 해당 칸도 캡션·이미지·삽입 대상으로 채워 전체 표 균형을 맞춤
-- 이미지 생성: 사용자가 원하면 1:1 비율 이미지를 생성해 `images/` 폴더에 저장하고 표에 삽입 또는 삽입 대상 표시
+- 이미지 생성: 사용자가 원하면 1:1 비율 이미지를 생성해 `images/` 폴더에 저장하고, 큰 이미지 칸에는 셀 배경 그림으로 넣고 아래 설명 칸에는 `- 설명`만 작성
+- 이미지 삽입: 그림 개체 삽입 금지. `셀 테두리/배경 -> 배경 그림` 방식으로 해당 셀 배경에 적용
+- 이미지 셀 배경 적용은 `hwp_set_cell_background_images.mjs`가 담당하며, 내부적으로 `pyhwpx`의 셀 배경 그림 기능을 사용
+- 반복 생성은 긴 임시 스크립트를 만들지 않고 `hwp_generate_overview.mjs --spec`에 짧은 spec JSON만 넘김
+- 원본 양식의 표 폭, 페이지 폭, 제목 크기, 공식 라벨은 건드리지 않음. 이미지 삽입 뒤 자동 page-fit 보정 금지
 
 ## 사용 예시
 
@@ -63,7 +70,10 @@
 | `skill/hwp-document-suite/SKILL.md` | Codex가 스킬 사용 시 읽는 핵심 지침 |
 | `skill/hwp-document-suite/scripts/hwp_inspect.mjs` | HWP 구조 분석 |
 | `skill/hwp-document-suite/scripts/hwp_fill_cells.mjs` | JSON 매핑으로 개요표 셀 작성 |
+| `skill/hwp-document-suite/scripts/hwp_generate_overview.mjs` | 짧은 spec JSON 하나로 개요표 작성과 이미지 셀 배경 적용을 한번에 처리 |
 | `skill/hwp-document-suite/scripts/hwp_layout_overview.mjs` | 개요표 문장 줄바꿈/스타일 정리 |
+| `skill/hwp-document-suite/scripts/hwp_fit_overview_page.mjs` | 표가 페이지 밖으로 밀릴 때 표 위치 오프셋을 정리해 제목과 표를 같은 페이지에 맞춤 |
+| `skill/hwp-document-suite/scripts/hwp_set_cell_background_images.mjs` | 이미지 칸의 마커 셀을 찾아 PNG를 셀 배경 그림으로 적용 |
 | `skill/hwp-document-suite/scripts/hwp_remove_nested_guides.mjs` | 중첩 안내표 제거 |
 | `skill/hwp-document-suite/scripts/hwp_hancom_preflight.mjs` | 최종 HWP 열기 검증 |
 | `skill/hwp-document-suite/scripts/hwp_hancom_setup.mjs` | 한컴 자동화 보안 모듈 최초 1회 등록 |

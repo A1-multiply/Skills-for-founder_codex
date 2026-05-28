@@ -30,15 +30,17 @@ if (process.platform !== "win32") {
 await hancomResave(input, output);
 
 function hancomResave(inputPath, outputPath) {
+  const openFormat = path.extname(inputPath).toLowerCase() === ".hwpx" ? "HWPX" : "HWP";
   const script = `
 $ErrorActionPreference = 'Stop'
 $inputPath = ${quotePowerShellString(path.resolve(inputPath))}
 $outputPath = ${quotePowerShellString(path.resolve(outputPath))}
+$openFormat = ${quotePowerShellString(openFormat)}
 ${hancomRequireNoExistingHwpPowerShell()}
 $hwp = New-Object -ComObject HWPFrame.HwpObject
 $hwp.SetMessageBoxMode(0x00020000) | Out-Null
 ${hancomSecurityPowerShell(import.meta.url)}
-$opened = $hwp.Open($inputPath, 'HWP', 'forceopen:true;readonly:false')
+$opened = $hwp.Open($inputPath, $openFormat, 'forceopen:true;readonly:false')
 if (-not $opened) { throw 'Hancom HWP failed to open input file.' }
 $hwp.SaveAs($outputPath, 'HWP', '') | Out-Null
 $hwp.Quit()

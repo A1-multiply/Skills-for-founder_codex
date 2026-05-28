@@ -10,8 +10,12 @@ description: Read, analyze, summarize, convert, compare, and edit Korean Hangul 
 Use the smallest context path that can finish the task.
 
 - Do not read scripts or long references unless debugging or changing them.
+- For repeated overview generation, do not inspect unless the target table is unknown or a write fails.
+- If inspection shows no table-like blocks, stop immediately and report that the file is not an overview-table form; do not keep trying coordinates.
+- If the user asks to use a non-table business plan as source material, read/summarize that source, then write a new output using the overview-table template. Do not try to fill cells inside the non-table source file.
 - Prefer running bundled scripts over explaining their internals.
 - For repeated startup overview work, use the known overview workflow below without re-reading all docs.
+- For full overview generation, create one compact spec JSON and run `hwp_generate_overview.mjs`; do not create one-off JS/Python wrappers.
 - For simple revisions to an already generated overview HWP, patch only the requested cell(s); do not inspect, parse, or rewrite the whole document unless the user asks.
 - Read `references/business-plan-forms.md` only for unusual form layouts or when writing full guidance.
 - Read `references/reference-plan-pattern.md` only when the user explicitly asks to match a reference-plan style.
@@ -28,7 +32,10 @@ Use the smallest context path that can finish the task.
 | Remove blue guide text | `scripts/hwp_clean_text.mjs` |
 | Remove nested guide boxes | `scripts/hwp_remove_nested_guides.mjs` |
 | Format overview cells black/non-italic | `scripts/hwp_format_overview.mjs` |
+| Generate overview from compact spec | `scripts/hwp_generate_overview.mjs --spec` |
 | Write visible line-broken overview bullets | `scripts/hwp_layout_overview.mjs --layout-map` |
+| Keep overview table inside page | `scripts/hwp_fit_overview_page.mjs` |
+| Set saved images as table-cell backgrounds | `scripts/hwp_set_cell_background_images.mjs --images` |
 | Hancom warning/open check | `scripts/hwp_hancom_preflight.mjs` |
 | One-time Hancom automation setup | `scripts/hwp_hancom_setup.mjs` |
 | Hancom COM re-save | `scripts/hwp_hancom_resave.mjs` |
@@ -57,6 +64,8 @@ Default writing rules:
 
 - Ask style questions only when the user asks to choose; if they say “그냥/기본/알아서”, proceed.
 - Default: concise Korean bullet style, 11pt base font, black, non-italic, natural line spacing, slight consistent top padding, one page max.
+- Never change text outside the target table, such as section titles, form headings, page headers, footers, or official labels outside editable cells. Solve overflow by adjusting only table content, table cell layout, wording, row height, split strategy, or image/blank-cell balance.
+- Never change overview table width, page width, outside title, or official form layout. If a table looks shifted, ask before running any fit/offset correction.
 - Ask the desired font only when the user is setting style. If not specified, use the same font as prior generated overview files: `휴먼명조`.
 - Keep font family consistent across all filled cells and emphasis lines. If a layout map sets `fontFamily`, use it for every line.
 - Category/form label cell (`범주`, `분야`, `제품군`, `업종`) is not an explanation area. Write one short category phrase on one line only, e.g. `캠핑 간편식`, `디저트 음료`, `문구 소품`, `주방 장비`. Do not use long slash chains.
@@ -67,24 +76,26 @@ Default writing rules:
 - Growth strategy may be stage-based, channel-based, customer-based, product-line-based, or year-based only when useful/requested.
 - Team cell must show execution feasibility: founder role + realistic masked role partners with field and years of experience. No real personal data unless provided and approved.
 - Image cells: ask whether to generate images or write text placeholders. If generating and ratio is unspecified, use 1:1 and save under `images/`.
+- When images are generated for an overview, always save the image files under an `images/` folder next to the output/workspace.
+- For image rows, put the real image in the large image cell and put only a short `-` caption in the small description/title cell below it. Do not put filenames or prose in the image cell.
+- Images must fit inside their own cell and must never push content to the next page. If the image overflows, regenerate/reinsert with smaller dimensions or crop/pad the bitmap; do not resize text outside the table.
+- Do not insert images as floating/inline picture objects. Use Hancom's cell border/fill background image path (`셀 테두리/배경 -> 배경 그림`) so the image is bound to the cell and cannot push pages.
+- The intended layout is: large top image cell has the image as the cell background, and the small bottom cell contains a bold-looking `-` caption.
+- Use polished, content-specific images. Avoid crude diagram screenshots, cluttered text, low-end clipart, and generic decorative images.
+- Set image backgrounds by writing a short marker into the image cell with `hwp_layout_overview.mjs`, then selecting that marker cell and applying the PNG as the cell background with `hwp_set_cell_background_images.mjs`.
+- After image background insertion, do not run page-fit correction automatically. The form's original table width and page layout must remain unchanged.
+- `hwp_set_cell_background_images.mjs` uses `pyhwpx`; install it once with `pip install pyhwpx` when the environment is missing it.
 - Empty/image cells are part of the layout balance. If image areas or unused cells create excessive whitespace, fill them with useful captions/images or reduce the surrounding blank space consistently so the whole page feels balanced.
 
 Fast workflow:
 
-1. Draft a compact JSON layout map with `cells` arrays, one string per visible line.
-2. Remove nested guide boxes:
+1. Draft one compact spec JSON with `template`, `output`, `cells`, and optional `images`.
+2. Run:
    ```bash
-   node scripts/hwp_remove_nested_guides.mjs <input.hwp> <temp-clean.hwp> --preset business-plan-overview-only
+   node scripts/hwp_generate_overview.mjs --spec <spec.json>
    ```
-3. Write line-broken cells:
-   ```bash
-   node scripts/hwp_layout_overview.mjs <temp-clean.hwp> <final.hwp> --layout-map <map.json>
-   ```
-4. Verify:
-   ```bash
-   node scripts/hwp_hancom_preflight.mjs <final.hwp>
-   ```
-5. Delete temp files; leave one final HWP unless the user asks otherwise.
+3. Verify only with targeted marker/content checks unless layout changed or the user asks for deeper inspection.
+4. Delete temp files; leave one final HWP unless the user asks otherwise.
 
 If `Hwp.exe` is already open, COM scripts intentionally fail before opening files to prevent Hancom security popups. Close/terminate `Hwp.exe`, then rerun.
 

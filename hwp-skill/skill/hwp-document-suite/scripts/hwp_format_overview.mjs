@@ -14,7 +14,8 @@ function usage() {
   node hwp_format_overview.mjs <input.hwp> <output.hwp> --preset business-plan-overview-compact [--parent-paragraph 7]
 
 Purpose:
-  Applies compact black non-italic formatting to known business-plan overview cells.
+  Applies black non-italic formatting only to known business-plan overview table cells.
+  It must not change section titles, form headings, headers, footers, or text outside the target table.
 `);
 }
 
@@ -51,7 +52,7 @@ try {
   const textCells = [1, 3, 5, 7, 9, 11, 13];
   const compactProps = {
     fontFamily: "휴먼명조",
-    fontSize: 900,
+    fontSize: 1100,
     bold: false,
     italic: false,
     underline: false,
@@ -59,7 +60,7 @@ try {
   };
   const titleProps = {
     fontFamily: "휴먼명조",
-    fontSize: 950,
+    fontSize: 1100,
     bold: false,
     italic: false,
     underline: false,
@@ -94,7 +95,7 @@ try {
             table.control,
             cell,
             para,
-            JSON.stringify({ lineSpacing: 130, align: "left" })
+            JSON.stringify({ lineSpacing: 140, align: "left" })
           ),
           "applyParaFormatInCell"
         );

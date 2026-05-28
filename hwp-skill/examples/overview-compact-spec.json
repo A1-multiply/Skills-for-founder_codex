@@ -1,0 +1,22 @@
+{
+  "template": "C:\\Users\\tester\\Desktop\\사업계획서 폴더\\작성본\\__돼지고기삼겹살_clean_tmp.hwp",
+  "output": "C:\\Users\\tester\\Desktop\\사업계획서 폴더\\작성본\\창업아이템_개요부분_아이템명_최종본.hwp",
+  "fontFamily": "함초롬바탕",
+  "cells": {
+    "1": ["아이템명"],
+    "3": ["짧은 카테고리"],
+    "5": ["[핵심 가치 제목]", "- bullet 1", "- bullet 2", "- bullet 3"],
+    "7": ["[문제 인식 제목]", "- bullet 1", "- bullet 2", "- bullet 3"],
+    "9": ["[실현 가능성 제목]", "- bullet 1", "- bullet 2", "- bullet 3"],
+    "11": ["[성장전략 제목]", "- bullet 1", "- bullet 2", "- bullet 3"],
+    "13": ["[실행 팀 제목]", "- 대표자: 역할", "- 협력자: 역할"],
+    "15": ["IMG_PRODUCT"],
+    "16": ["IMG_FLOW"],
+    "17": ["- 제품 이미지 설명"],
+    "18": ["- 이용 흐름 이미지 설명"]
+  },
+  "images": [
+    { "marker": "IMG_PRODUCT", "path": "C:\\path\\product.png", "filloption": 5 },
+    { "marker": "IMG_FLOW", "path": "C:\\path\\flow.png", "filloption": 5 }
+  ]
+}

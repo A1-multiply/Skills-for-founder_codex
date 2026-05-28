@@ -224,15 +224,17 @@ function pathToFileUrl(filePath) {
 function removeWithHancomCom(inputPath, outputPath, presetName) {
   const startIndex = presetName === "business-plan-overview-only" ? 7 : (presetName === "business-plan-all-guides" ? 12 : 13);
   const endIndex = presetName === "business-plan-overview-only" ? 15 : 21;
+  const openFormat = path.extname(inputPath).toLowerCase() === ".hwpx" ? "HWPX" : "HWP";
   const script = `
 $ErrorActionPreference = 'Stop'
 $inputPath = ${quotePowerShellString(path.resolve(inputPath))}
 $outputPath = ${quotePowerShellString(path.resolve(outputPath))}
+$openFormat = ${quotePowerShellString(openFormat)}
 ${hancomRequireNoExistingHwpPowerShell()}
 $hwp = New-Object -ComObject HWPFrame.HwpObject
 $hwp.SetMessageBoxMode(0x00020000) | Out-Null
 ${hancomSecurityPowerShell(import.meta.url)}
-$opened = $hwp.Open($inputPath, 'HWP', 'forceopen:true;readonly:false')
+$opened = $hwp.Open($inputPath, $openFormat, 'forceopen:true;readonly:false')
 if (-not $opened) { throw 'Hancom HWP failed to open input file.' }
 $ctrls = @()
 $ctrl = $hwp.HeadCtrl

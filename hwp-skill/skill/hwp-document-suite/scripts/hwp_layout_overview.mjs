@@ -369,7 +369,7 @@ function readLayoutReplacementsFromMap(map) {
 async function layoutCellsWithRhwp(inputPath, outputPath, map) {
   const core = await loadRhwpCore();
   const doc = new core.HwpDocument(new Uint8Array(await readFile(inputPath)));
-  const table = {
+  let table = {
     section: Number(map.section ?? 0),
     parentParagraph: Number(map.parentParagraph),
     control: Number(map.control ?? 0)
@@ -377,6 +377,10 @@ async function layoutCellsWithRhwp(inputPath, outputPath, map) {
 
   if (!Number.isInteger(table.parentParagraph)) {
     throw new Error("layout-map with cells requires integer parentParagraph");
+  }
+  table = resolveTable(doc, table, map.cells ?? {});
+  if (!isUsableTable(doc, table, map.cells ?? {})) {
+    throw new Error("No usable overview table found. Inspect the file or use an overview-table template.");
   }
 
   let paragraphsWritten = 0;
@@ -400,6 +404,31 @@ async function layoutCellsWithRhwp(inputPath, outputPath, map) {
     return { ok: true, method: "rhwp-cell-paragraph-layout", outputPath, paragraphsWritten, normalized };
   } finally {
     doc.free();
+  }
+}
+
+function resolveTable(doc, table, cells) {
+  if (isUsableTable(doc, table, cells)) return table;
+  const section = Number(table.section ?? 0);
+  for (let parentParagraph = 0; parentParagraph < 80; parentParagraph += 1) {
+    for (let control = 0; control < 12; control += 1) {
+      const candidate = { section, parentParagraph, control };
+      if (isUsableTable(doc, candidate, cells)) return candidate;
+    }
+  }
+  return table;
+}
+
+function isUsableTable(doc, table, cells) {
+  try {
+    const targetCells = Object.keys(cells).map(Number).filter(Number.isInteger);
+    const probeCells = targetCells.length ? targetCells.slice(0, 3) : [1, 3, 5];
+    for (const cell of probeCells) {
+      doc.getCellParagraphCount(table.section, table.parentParagraph, table.control, cell);
+    }
+    return true;
+  } catch {
+    return false;
   }
 }
 
