@@ -17,7 +17,7 @@
 
 | 구분 | 역할 | 주요 파일 |
 | --- | --- | --- |
-| 스킬 지침 | Codex가 HWP/HWPX 문서를 어떻게 읽고 수정할지 알려주는 본체 | `hwp-skill/skill/hwp-document-suite/SKILL.md` |
+| 스킬 지침 | Codex가 HWP/HWPX 문서를 어떻게 읽고 수정할지 알려주는 본체 | `hwp-skill/skill/hwp-document-suite/SKILL.md` (`founder-hwp`) |
 | 읽기/분석 | HWP/HWPX/HWPML을 Markdown, JSON, 요약 파일로 변환 | `hwp_inspect.mjs` |
 | 기본 편집 | 정보 조회, 검색, 치환, 삽입, 삭제, 표 생성 실행 | `hwp_edit.mjs` |
 | 양식 채우기 | JSON 매핑으로 여러 HWP 표 셀을 한 번에 작성 | `hwp_fill_cells.mjs` |

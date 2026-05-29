@@ -1,9 +1,9 @@
 ---
-name: hwp-document-suite
+name: founder-hwp
 description: Read, analyze, summarize, convert, compare, and edit Korean Hangul Office documents including .hwp, .hwpx, and .hwpml files. Use for HWP/HWPX inspection, table extraction, Markdown/JSON conversion, startup-item overview table drafting, form-cell filling, guide-text cleanup, and safe HWP editing.
 ---
 
-# HWP Document Suite
+# Founder HWP
 
 ## Token Rule
 
