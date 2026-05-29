@@ -1,8 +1,15 @@
 # Sample
 
-Start here when you clone the repo for the first time.
+처음 clone했을 때는 이 폴더의 파일을 기준으로 시작하면 됩니다.
 
-- `창업아이템 개요부분.hwp`: base overview-table template
-- Copy this file before drafting a new business-plan overview
-- Use the HWP skill workflow against this template, then save outputs separately
+- `창업아이템 개요부분.hwp`
+  - 기본 한글 개요표 샘플
+  - 새 주제 작업의 출발점
+  - 필요하면 복사해서 새 파일로 사용
+
+## 사용 방법
+
+1. `창업아이템 개요부분.hwp`를 복사합니다.
+2. `A1-founder-hwp` 스킬로 읽기/수정 작업을 진행합니다.
+3. 결과 파일은 별도로 저장합니다.
 
