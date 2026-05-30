@@ -1,9 +1,9 @@
 ---
-name: A1-founder-hwp
+name: A1-HWP-SKILL
 description: Read, analyze, summarize, convert, compare, and edit Korean Hangul Office documents including .hwp, .hwpx, and .hwpml files. Use for HWP/HWPX inspection, table extraction, Markdown/JSON conversion, startup-item overview table drafting, form-cell filling, guide-text cleanup, and safe HWP editing.
 ---
 
-# A1 Founder HWP
+# A1 HWP Skill
 
 ## Token Rule
 

@@ -11,10 +11,10 @@ fi
 
 codex_home="${CODEX_HOME:-$HOME/.codex}"
 skills_dir="$codex_home/skills"
-target="$skills_dir/hwp-document-suite"
+target="$skills_dir/A1-HWP-SKILL"
 
 mkdir -p "$skills_dir"
 rm -rf "$target"
 cp -R "$source_dir" "$target"
 
-echo "Installed hwp-document-suite to $target"
+echo "Installed A1-HWP-SKILL to $target"

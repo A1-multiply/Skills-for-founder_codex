@@ -4,7 +4,7 @@
 
 ## 핵심 스킬
 
-- `A1-founder-hwp`
+- `A1-HWP-SKILL`
   - 한글 문서를 읽고 구조를 파악합니다.
   - 개요표를 작성하고, 필요하면 기존 표를 수정합니다.
   - 표 안의 내용만 바꾸고 양식은 유지하는 흐름에 맞춰져 있습니다.
@@ -12,16 +12,16 @@
 ## 어떻게 부르나
 
 - Codex에서 이렇게 말하면 됩니다.
-  - `@A1-founder-hwp로 이 HWP 읽어줘`
-  - `@A1-founder-hwp로 창업아이템 개요부분 만들어줘`
-  - `@A1-founder-hwp로 표 양식 유지하면서 내용만 수정해줘`
+  - `@A1-HWP-SKILL로 이 HWP 읽어줘`
+  - `@A1-HWP-SKILL로 창업아이템 개요부분 만들어줘`
+  - `@A1-HWP-SKILL로 표 양식 유지하면서 내용만 수정해줘`
 
 ## 설치 방법
 
 - Codex를 켠 뒤, 스킬 설치가 필요하다고 말하면 됩니다.
 - GitHub 주소를 함께 주면 됩니다.
   - 예: `https://github.com/A1-multiply/Skills-for-founder_codex.git`
-- Codex가 이 저장소를 설치하면 `A1-founder-hwp` 스킬이 잡힙니다.
+- Codex가 이 저장소를 설치하면 `A1-HWP-SKILL` 스킬이 잡힙니다.
 
 ## 기본 시작 파일
 
@@ -32,7 +32,7 @@
 ## 포함된 파일
 
 - `hwp-skill/skill/hwp-document-suite/SKILL.md`
-  - `A1-founder-hwp` 스킬 본체
+  - `A1-HWP-SKILL` 스킬 본체
 - `Sample/창업아이템 개요부분.hwp`
   - 기본 시작용 한글 샘플
 - `Sample/README.md`
@@ -44,4 +44,3 @@
 - 표 밖의 제목, 양식, 틀은 되도록 유지합니다.
 - 특별한 요청이 없으면 이미지 없이 먼저 작성합니다.
 - 이미지가 필요한 경우에는 마지막 이미지 칸에 맞춰 별도로 넣습니다.
-
