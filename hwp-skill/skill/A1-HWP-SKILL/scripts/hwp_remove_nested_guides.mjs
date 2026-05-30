@@ -156,7 +156,7 @@ try {
 }
 
 function visibleTextLength(text) {
-  const marker = "[중첩 테이블";
+  const marker = "[以묒꺽 ?뚯씠釉?;
   const index = String(text).indexOf(marker);
   if (index >= 0) return index;
   return String(text).length;
@@ -181,7 +181,7 @@ async function loadRhwpCore() {
 }
 
 function ensureRhwpCore() {
-  const installDir = path.join(os.tmpdir(), "hwp-document-suite-rhwp-core");
+  const installDir = path.join(os.tmpdir(), "A1-HWP-SKILL-rhwp-core");
   mkdirSync(installDir, { recursive: true });
   try {
     require(path.join(installDir, "node_modules", "@rhwp", "core", "package.json"));

@@ -51,7 +51,7 @@ try {
   }
   const textCells = [1, 3, 5, 7, 9, 11, 13];
   const compactProps = {
-    fontFamily: "휴먼명조",
+    fontFamily: "?대㉫紐낆“",
     fontSize: 1100,
     bold: false,
     italic: false,
@@ -59,7 +59,7 @@ try {
     textColor: "#000000"
   };
   const titleProps = {
-    fontFamily: "휴먼명조",
+    fontFamily: "?대㉫紐낆“",
     fontSize: 1100,
     bold: false,
     italic: false,
@@ -130,7 +130,7 @@ async function loadRhwpCore() {
 }
 
 function ensureRhwpCore() {
-  const installDir = path.join(os.tmpdir(), "hwp-document-suite-rhwp-core");
+  const installDir = path.join(os.tmpdir(), "A1-HWP-SKILL-rhwp-core");
   mkdirSync(installDir, { recursive: true });
   try {
     require(path.join(installDir, "node_modules", "@rhwp", "core", "package.json"));

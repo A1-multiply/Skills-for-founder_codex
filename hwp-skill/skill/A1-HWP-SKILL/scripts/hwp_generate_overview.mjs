@@ -19,11 +19,11 @@ overview.json:
 {
   "template": "clean-template.hwp",
   "output": "final.hwp",
-  "fontFamily": "함초롬바탕",
+  "fontFamily": "?⑥큹濡щ컮??,
   "cells": {
-    "1": ["아이템명"],
-    "3": ["짧은 카테고리"],
-    "5": ["[제목]", "- bullet"]
+    "1": ["?꾩씠?쒕챸"],
+    "3": ["吏㏃? 移댄뀒怨좊━"],
+    "5": ["[?쒕ぉ]", "- bullet"]
   },
   "images": [
     { "marker": "IMG_PRODUCT", "path": "./images/product.png" },
@@ -59,7 +59,7 @@ try {
     section: Number(spec.section ?? 0),
     parentParagraph: Number(spec.parentParagraph ?? 1),
     control: Number(spec.control ?? 0),
-    fontFamily: spec.fontFamily ?? "함초롬바탕",
+    fontFamily: spec.fontFamily ?? "?⑥큹濡щ컮??,
     emphasis: spec.emphasis ?? {},
     cells: spec.cells ?? {}
   });
@@ -154,7 +154,7 @@ function overwriteCell(doc, table, cell, lines) {
 function formatCell(doc, table, cell, lines, map) {
   const profile = getProfile(cell, lines.length);
   const emphasis = map.emphasis?.[String(cell)];
-  const fontFamily = map.fontFamily ?? "함초롬바탕";
+  const fontFamily = map.fontFamily ?? "?⑥큹濡щ컮??;
   for (let para = 0; para < lines.length; para += 1) {
     const length = doc.getCellParagraphLength(table.section, table.parentParagraph, table.control, cell, para);
     if (length <= 0) continue;
@@ -206,7 +206,7 @@ async function loadRhwpCore() {
 }
 
 function ensureRhwpCore() {
-  const installDir = path.join(tmpdir(), "hwp-document-suite-rhwp-core");
+  const installDir = path.join(tmpdir(), "A1-HWP-SKILL-rhwp-core");
   mkdirSync(installDir, { recursive: true });
   try {
     require(path.join(installDir, "node_modules", "@rhwp", "core", "package.json"));

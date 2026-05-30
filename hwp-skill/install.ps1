@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$source = Join-Path $repoRoot "skill\hwp-document-suite"
+$source = Join-Path $repoRoot "skill\A1-HWP-SKILL"
 
 if (-not (Test-Path -LiteralPath $source)) {
   throw "Skill folder not found: $source"

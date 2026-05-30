@@ -8,9 +8,9 @@ pattern, information hierarchy, layout rhythm, and visual organization.
 ## Overall Writing Pattern
 
 - Start with a concise item definition, then immediately explain the customer pain and why the item solves it.
-- Prefer short declarative Korean sentences ending in `~임`, `~가능`, `~예정`, `~확인`, `~추진`.
+- Prefer short declarative Korean sentences ending in `~??, `~媛??, `~?덉젙`, `~?뺤씤`, `~異붿쭊`.
 - Use a bracketed headline to summarize each cell or subsection:
-  `[ 핵심 가치 / 문제 / 실행 방향 / 시장 목표 ]`
+  `[ ?듭떖 媛移?/ 臾몄젣 / ?ㅽ뻾 諛⑺뼢 / ?쒖옣 紐⑺몴 ]`
 - Follow the headline with short bullets or compact paragraphs. Avoid loose essay-like writing.
 - Use concrete anchors whenever possible:
   customer group, use case, measurable burden, cost/time reduction, current progress, channel, price, revenue logic, partner role.
@@ -21,27 +21,27 @@ pattern, information hierarchy, layout rhythm, and visual organization.
 
 The overview table should feel like a dense executive summary, not a long essay.
 
-- `아이템 개요`
+- `?꾩씠??媛쒖슂`
   - Bracketed one-line value proposition.
   - 2-4 lines explaining product/service, target user, and core function.
-  - If space allows, include short labels such as `핵심 기능`, `제공 방식`, `기대효과`.
-- `문제 인식`
+  - If space allows, include short labels such as `?듭떖 湲곕뒫`, `?쒓났 諛⑹떇`, `湲곕??④낵`.
+- `臾몄젣 ?몄떇`
   - Bracketed pain statement.
   - 2-4 lines showing current inconvenience, cost/time burden, quality problem, or unmet demand.
   - Add a number only when it is plausible and supported by the user's context.
-- `실현 가능성`
+- `?ㅽ쁽 媛?μ꽦`
   - Bracketed execution statement.
   - Mention current status, prototype, supplier/partner, test plan, or development step.
-  - Avoid saying only "개발 예정"; say what will be tested and how.
-- `성장전략`
+  - Avoid saying only "媛쒕컻 ?덉젙"; say what will be tested and how.
+- `?깆옣?꾨왂`
   - Do not default to `2026/2027/2028`.
   - Choose one:
-    - stage-based: `시제품 검증 -> 온라인 판매 -> B2B 납품`
-    - channel-based: `자사몰 -> 편의점/리테일 -> 정기배송`
-    - customer-based: `개인 고객 -> 소형 매장 -> 기관/기업`
-    - product-line based: `기본형 -> 프리미엄형 -> 라인업 확장`
+    - stage-based: `?쒖젣??寃利?-> ?⑤씪???먮ℓ -> B2B ?⑺뭹`
+    - channel-based: `?먯궗紐?-> ?몄쓽??由ы뀒??-> ?뺢린諛곗넚`
+    - customer-based: `媛쒖씤 怨좉컼 -> ?뚰삎 留ㅼ옣 -> 湲곌?/湲곗뾽`
+    - product-line based: `湲곕낯??-> ?꾨━誘몄뾼??-> ?쇱씤???뺤옣`
     - year-based roadmap only when the user asks for years or revenue schedule.
-- `팀 구성`
+- `? 援ъ꽦`
   - Bracketed execution structure.
   - Founder role first, then supplier/developer/designer/test customer/partner roles.
 
@@ -71,7 +71,7 @@ The reference plan uses images and image placeholders as proof blocks, not decor
   - left: product/service summary, process, prototype, or screen
   - right: logo/icon, channel diagram, customer flow, or result example
 - Put short captions under or inside the image area using angle brackets:
-  `< 아이템 요약 >`, `< 서비스 프로세스 >`, `< 매출 계획 >`, `< 사업 로드맵 >`
+  `< ?꾩씠???붿빟 >`, `< ?쒕퉬???꾨줈?몄뒪 >`, `< 留ㅼ텧 怨꾪쉷 >`, `< ?ъ뾽 濡쒕뱶留?>`
 - Images should support the written claim:
   prototype, process flow, service screen, market chart, roadmap, revenue table, test evidence.
 - Avoid purely decorative images.
@@ -80,28 +80,28 @@ The reference plan uses images and image placeholders as proof blocks, not decor
 
 For full business-plan sections beyond the overview table:
 
-- `문제인식`
+- `臾몄젣?몄떇`
   - Start with an item summary.
   - Explain the trigger/problem.
   - Add market/customer evidence.
   - Use a small table when comparing features, costs, or user needs.
-- `실현가능성`
+- `?ㅽ쁽媛?μ꽦`
   - Show development items and progress status.
-  - Use a table with columns like `구분 / 개발 항목 / 개발 방안 / 진행률`.
+  - Use a table with columns like `援щ텇 / 媛쒕컻 ??ぉ / 媛쒕컻 諛⑹븞 / 吏꾪뻾瑜?.
   - Add short paragraphs under the table to explain major items.
-- `차별화`
+- `李⑤퀎??
   - Use competitor comparison table.
   - Then explain the difference in 2-3 short paragraphs.
-- `성장전략`
+- `?깆옣?꾨왂`
   - Use business model, channel, target market, revenue logic, and roadmap.
   - Revenue/year tables are allowed only when they are grounded in a reasonable assumption.
-- `사업 추진 일정`
+- `?ъ뾽 異붿쭊 ?쇱젙`
   - Use schedule table or roadmap grid.
   - Avoid only writing narrative dates.
-- `자금 계획`
+- `?먭툑 怨꾪쉷`
   - Use budget table with category, basis, and amount.
   - Add short notes for major costs.
-- `팀 구성`
+- `? 援ъ꽦`
   - Use table for roles/capabilities.
   - If team members are not fixed, state planned partner or hiring role.
 

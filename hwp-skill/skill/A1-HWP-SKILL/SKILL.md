@@ -52,24 +52,24 @@ This intentionally writes the bundled FilePathCheckDLL path to HKCU. After that,
 
 ## Startup Overview Fast Path
 
-Use this for `창업 아이템 개요(요약)` / overview-only business-plan files.
+Use this for `李쎌뾽 ?꾩씠??媛쒖슂(?붿빟)` / overview-only business-plan files.
 
 Known common coordinates:
 
-- overview-only file `창업아이템 개요부분.hwp`: `section:0`, `parentParagraph:1`, `control:0`
+- overview-only file `李쎌뾽?꾩씠??媛쒖슂遺遺?hwp`: `section:0`, `parentParagraph:1`, `control:0`
 - full 2026 preliminary-startup template: `section:0`, `parentParagraph:7`, `control:0`
 - cells: `1` name, `3` category, `5` overview, `7` problem, `9` feasibility, `11` growth, `13` team
 
 Default writing rules:
 
-- Ask style questions only when the user asks to choose; if they say “그냥/기본/알아서”, proceed.
+- Ask style questions only when the user asks to choose; if they say ?쒓렇??湲곕낯/?뚯븘?쒋? proceed.
 - Default: concise Korean bullet style, 11pt base font, black, non-italic, natural line spacing, slight consistent top padding, one page max.
 - Never change text outside the target table, such as section titles, form headings, page headers, footers, or official labels outside editable cells. Solve overflow by adjusting only table content, table cell layout, wording, row height, split strategy, or image/blank-cell balance.
 - Never change overview table width, page width, outside title, or official form layout. If a table looks shifted, ask before running any fit/offset correction.
-- Ask the desired font only when the user is setting style. If not specified, use the same font as prior generated overview files: `휴먼명조`.
+- Ask the desired font only when the user is setting style. If not specified, use the same font as prior generated overview files: `?대㉫紐낆“`.
 - Keep font family consistent across all filled cells and emphasis lines. If a layout map sets `fontFamily`, use it for every line.
-- Category/form label cell (`범주`, `분야`, `제품군`, `업종`) is not an explanation area. Write one short category phrase on one line only, e.g. `캠핑 간편식`, `디저트 음료`, `문구 소품`, `주방 장비`. Do not use long slash chains.
-- Each content cell: `[핵심 제목]` + separate bullet lines. Never collapse bullets into one paragraph.
+- Category/form label cell (`踰붿＜`, `遺꾩빞`, `?쒗뭹援?, `?낆쥌`) is not an explanation area. Write one short category phrase on one line only, e.g. `罹좏븨 媛꾪렪??, `?붿????뚮즺`, `臾멸뎄 ?뚰뭹`, `二쇰갑 ?λ퉬`. Do not use long slash chains.
+- Each content cell: `[?듭떖 ?쒕ぉ]` + separate bullet lines. Never collapse bullets into one paragraph.
 - Always make the bracket headline line (`[ ... ]`) bold, with the same font family and normal black color unless the user explicitly requests a different style.
 - If crowded: shorten bullets first; then reduce inner margins/blank areas consistently; then reduce font/line spacing slightly. Do not make lines overlap.
 - Default bullet count: 3-5 lines per content cell. Match user-requested line counts when given.
@@ -79,7 +79,7 @@ Default writing rules:
 - When images are generated for an overview, always save the image files under an `images/` folder next to the output/workspace.
 - For image rows, put the real image in the large image cell and put only a short `-` caption in the small description/title cell below it. Do not put filenames or prose in the image cell.
 - Images must fit inside their own cell and must never push content to the next page. If the image overflows, regenerate/reinsert with smaller dimensions or crop/pad the bitmap; do not resize text outside the table.
-- Do not insert images as floating/inline picture objects. Use Hancom's cell border/fill background image path (`셀 테두리/배경 -> 배경 그림`) so the image is bound to the cell and cannot push pages.
+- Do not insert images as floating/inline picture objects. Use Hancom's cell border/fill background image path (`? ?뚮몢由?諛곌꼍 -> 諛곌꼍 洹몃┝`) so the image is bound to the cell and cannot push pages.
 - The intended layout is: large top image cell has the image as the cell background, and the small bottom cell contains a bold-looking `-` caption.
 - Use polished, content-specific images. Avoid crude diagram screenshots, cluttered text, low-end clipart, and generic decorative images.
 - Set image backgrounds by writing a short marker into the image cell with `hwp_layout_overview.mjs`, then selecting that marker cell and applying the PNG as the cell background with `hwp_set_cell_background_images.mjs`.
@@ -117,18 +117,18 @@ Example:
   "section": 0,
   "parentParagraph": 1,
   "control": 0,
-  "fontFamily": "휴먼명조",
+  "fontFamily": "?대㉫紐낆“",
   "emphasis": {
     "11": { "line": -1, "color": "#008000", "align": "center", "fontSize": 1050, "bold": true }
   },
   "cells": {
     "11": [
-      "[성장전략 제목]",
-      "- 항목 1",
-      "- 항목 2",
-      "- 항목 3",
-      "- 항목 4",
-      "핵심: 가운데 정렬 강조 문장"
+      "[?깆옣?꾨왂 ?쒕ぉ]",
+      "- ??ぉ 1",
+      "- ??ぉ 2",
+      "- ??ぉ 3",
+      "- ??ぉ 4",
+      "?듭떖: 媛?대뜲 ?뺣젹 媛뺤“ 臾몄옣"
     ]
   }
 }
