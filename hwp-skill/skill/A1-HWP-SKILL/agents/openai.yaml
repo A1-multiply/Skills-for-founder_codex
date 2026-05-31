@@ -1,4 +1,4 @@
 interface:
-  display_name: "HWP Document Suite"
+  display_name: "A1-HWP-SKILL"
   short_description: "Read, analyze, and edit Korean HWP/HWPX documents."
-  default_prompt: "Read this HWP/HWPX document, summarize its structure and contents, including tables, then make requested edits safely."
+  default_prompt: "Use the A1-HWP-SKILL workflow to generate startup overview HWP files directly from the sample template. Fill each cell with topic-specific 핵심 내용 only, do not repeat section labels in body text, and keep the final filename in the form 창업아이템_개요부분_<주제>_최종본.hwp."

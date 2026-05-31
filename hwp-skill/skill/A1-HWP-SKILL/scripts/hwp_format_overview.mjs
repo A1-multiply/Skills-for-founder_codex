@@ -37,6 +37,8 @@ if (!input || !output || args.includes("--help") || args.includes("-h")) {
   process.exit(input || output ? 0 : 1);
 }
 
+mkdirSync(path.dirname(output), { recursive: true });
+
 if (preset !== "business-plan-overview-compact") {
   throw new Error("Supported preset: business-plan-overview-compact");
 }

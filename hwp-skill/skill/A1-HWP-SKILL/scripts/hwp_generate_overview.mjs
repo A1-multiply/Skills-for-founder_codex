@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-import { execFile } from "node:child_process";
+import { execFile, execFileSync, execSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { execFileSync, execSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -19,11 +18,11 @@ overview.json:
 {
   "template": "clean-template.hwp",
   "output": "final.hwp",
-  "fontFamily": "?⑥큹濡щ컮??,
+  "fontFamily": "맑은 고딕",
   "cells": {
-    "1": ["?꾩씠?쒕챸"],
-    "3": ["吏㏃? 移댄뀒怨좊━"],
-    "5": ["[?쒕ぉ]", "- bullet"]
+    "1": ["아이템명"],
+    "3": ["주제 카테고리"],
+    "5": ["[아이템 가치 제안]", "- bullet"]
   },
   "images": [
     { "marker": "IMG_PRODUCT", "path": "./images/product.png" },
@@ -49,25 +48,38 @@ if (!specPath || args.includes("--help") || args.includes("-h")) {
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const spec = JSON.parse(await readFile(specPath, "utf8"));
-const input = path.resolve(required(spec.template, "template"));
-const output = path.resolve(required(spec.output, "output"));
+const specDir = path.dirname(path.resolve(specPath));
+const input = resolveSpecPath(specDir, required(spec.template, "template"));
+const output = resolveSpecPath(specDir, required(spec.output, "output"));
 const workDir = await mkdtemp(path.join(tmpdir(), "hwp-overview-"));
+mkdirSync(path.dirname(output), { recursive: true });
 
 try {
+  const preparedInput = await prepareTemplate(input, spec, workDir);
   const rawOutput = spec.images?.length ? path.join(workDir, "overview-raw.hwp") : output;
-  await writeCellsWithRhwp(input, rawOutput, {
+  await writeCellsWithRhwp(preparedInput, rawOutput, {
     section: Number(spec.section ?? 0),
     parentParagraph: Number(spec.parentParagraph ?? 1),
     control: Number(spec.control ?? 0),
-    fontFamily: spec.fontFamily ?? "?⑥큹濡щ컮??,
+    fontFamily: spec.fontFamily ?? "맑은 고딕",
     emphasis: spec.emphasis ?? {},
     cells: spec.cells ?? {}
   });
 
+  let currentOutput = rawOutput;
+  currentOutput = await runOptionalPostProcess(currentOutput, spec);
+
   if (spec.images?.length) {
     const imagesPath = path.join(workDir, "images.json");
-    await writeFile(imagesPath, JSON.stringify({ items: spec.images }, null, 2), "utf8");
-    await runNode("hwp_set_cell_background_images.mjs", [rawOutput, output, "--images", imagesPath]);
+    const items = spec.images.map((item) => ({
+      ...item,
+      path: resolveSpecPath(specDir, required(item.path, "image.path"))
+    }));
+    await writeFile(imagesPath, JSON.stringify({ items }, null, 2), "utf8");
+    await runNode("hwp_set_cell_background_images.mjs", [currentOutput, output, "--images", imagesPath]);
+    currentOutput = output;
+  } else if (currentOutput !== output) {
+    await writeFile(output, await readFile(currentOutput));
   }
 
   console.log(JSON.stringify({ ok: true, outputPath: output, images: spec.images?.length ?? 0 }, null, 2));
@@ -78,6 +90,58 @@ try {
 function required(value, name) {
   if (!value) throw new Error(`spec.${name} is required`);
   return String(value);
+}
+
+function resolveSpecPath(specDir, value) {
+  return path.isAbsolute(value) ? value : path.resolve(specDir, value);
+}
+
+async function prepareTemplate(inputPath, spec, workDir) {
+  let current = inputPath;
+
+  if (spec.cleanPreset) {
+    const next = path.join(workDir, "template-cleaned.hwp");
+    await runNode("hwp_clean_text.mjs", [current, next, "--preset", String(spec.cleanPreset)]);
+    current = next;
+  }
+
+  if (spec.removeNestedGuidesPreset) {
+    const next = path.join(workDir, "template-nested-guides-removed.hwp");
+    await runNode("hwp_remove_nested_guides.mjs", [
+      current,
+      next,
+      "--preset",
+      String(spec.removeNestedGuidesPreset),
+      "--section",
+      String(spec.section ?? 0),
+      "--parent-paragraph",
+      String(spec.parentParagraph ?? 1),
+      "--control",
+      String(spec.control ?? 0)
+    ]);
+    current = next;
+  }
+
+  return current;
+}
+
+async function runOptionalPostProcess(inputPath, spec) {
+  let current = inputPath;
+
+  if (spec.formatPreset) {
+    const next = path.join(path.dirname(current), "formatted.hwp");
+    await runNode("hwp_format_overview.mjs", [
+      current,
+      next,
+      "--preset",
+      String(spec.formatPreset),
+      "--parent-paragraph",
+      String(spec.parentParagraph ?? 1)
+    ]);
+    current = next;
+  }
+
+  return current;
 }
 
 async function writeCellsWithRhwp(inputPath, outputPath, map) {
@@ -93,6 +157,7 @@ async function writeCellsWithRhwp(inputPath, outputPath, map) {
       overwriteCell(doc, table, cell, lines);
       formatCell(doc, table, cell, lines, map);
     }
+    mkdirSync(path.dirname(outputPath), { recursive: true });
     await writeFile(outputPath, Buffer.from(doc.exportHwp()));
   } finally {
     doc.free();
@@ -154,7 +219,7 @@ function overwriteCell(doc, table, cell, lines) {
 function formatCell(doc, table, cell, lines, map) {
   const profile = getProfile(cell, lines.length);
   const emphasis = map.emphasis?.[String(cell)];
-  const fontFamily = map.fontFamily ?? "?⑥큹濡щ컮??;
+  const fontFamily = map.fontFamily ?? "맑은 고딕";
   for (let para = 0; para < lines.length; para += 1) {
     const length = doc.getCellParagraphLength(table.section, table.parentParagraph, table.control, cell, para);
     if (length <= 0) continue;

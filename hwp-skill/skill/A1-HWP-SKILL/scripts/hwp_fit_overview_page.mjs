@@ -39,6 +39,8 @@ if (!input || !output) {
   process.exit(1);
 }
 
+mkdirSync(path.dirname(output), { recursive: true });
+
 const result = await fitOverviewTableToPage(input, output, {
   section: Number(readFlag("--section") ?? 0),
   parentParagraph: readFlag("--parent-paragraph"),

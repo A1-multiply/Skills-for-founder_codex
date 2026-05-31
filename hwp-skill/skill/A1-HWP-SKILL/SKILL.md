@@ -17,10 +17,17 @@ Use the smallest context path that can finish the task.
 - For repeated startup overview work, use the known overview workflow below without re-reading all docs.
 - For full overview generation, create one compact spec JSON and run `hwp_generate_overview.mjs`; do not create one-off JS/Python wrappers.
 - For simple revisions to an already generated overview HWP, patch only the requested cell(s); do not inspect, parse, or rewrite the whole document unless the user asks.
+- When the user gives only a topic, generate the content directly from the sample overview pattern. Do not ask follow-up questions unless the table layout itself is ambiguous.
+- In overview cells, write topic-specific 핵심 내용, not repeated section names. Example style: `- 소량 충진과 패키징 테스트로 시제품 검증 가능`.
+- Keep the body text compact and concrete. Each content cell should usually have 2-4 short bullets or sentence fragments that express the claim, evidence, or execution plan.
+- Use the exact filename pattern `창업아이템_개요부분_<주제>_최종본.hwp` unless the user specifies a different output name.
 - Read `references/business-plan-forms.md` only for unusual form layouts or when writing full guidance.
 - Read `references/reference-plan-pattern.md` only when the user explicitly asks to match a reference-plan style.
 - Keep original HWP/HWPX read-only; save outputs separately.
 - Run Hancom setup once per machine/session, not during every document task.
+- For overview generation, remove blue guide boxes and nested example tables from the template before writing user content.
+- Prefer `assets/clean-overview-template.hwp` for overview generation. It is the cleaned template bundled with the installed skill, so GitHub installs do not depend on a user's Desktop sample folder.
+- Bracket headlines must summarize the actual claim in that row. Do not use generic row names such as `[아이템 개요]`, `[문제 인식]`, `[실현 가능성]`, `[성장전략]`, or `[팀 구성]` as the bracket headline.
 
 ## Tool Routing
 
@@ -68,8 +75,10 @@ Default writing rules:
 - Never change overview table width, page width, outside title, or official form layout. If a table looks shifted, ask before running any fit/offset correction.
 - Ask the desired font only when the user is setting style. If not specified, use the same font as prior generated overview files: `?대㉫紐낆“`.
 - Keep font family consistent across all filled cells and emphasis lines. If a layout map sets `fontFamily`, use it for every line.
+- Do not leave guide text or nested example tables in the final file. The finished document should look like the clean reference file with only the form structure and user-specific content visible.
 - Category/form label cell (`踰붿＜`, `遺꾩빞`, `?쒗뭹援?, `?낆쥌`) is not an explanation area. Write one short category phrase on one line only, e.g. `罹좏븨 媛꾪렪??, `?붿????뚮즺`, `臾멸뎄 ?뚰뭹`, `二쇰갑 ?λ퉬`. Do not use long slash chains.
-- Each content cell: `[?듭떖 ?쒕ぉ]` + separate bullet lines. Never collapse bullets into one paragraph.
+- Each content cell: `[핵심 결론 문장]` + separate bullet lines. Never collapse bullets into one paragraph.
+- Good bracket headline examples: `[소량 충진과 패키징 테스트로 시제품 검증이 가능]`, `[온라인 판매와 체험형 유통을 중심으로 단계적 확장 가능]`, `[제품 기획, 성분 검토, 패키징 협력이 가능한 실행형 팀 구성]`.
 - Always make the bracket headline line (`[ ... ]`) bold, with the same font family and normal black color unless the user explicitly requests a different style.
 - If crowded: shorten bullets first; then reduce inner margins/blank areas consistently; then reduce font/line spacing slightly. Do not make lines overlap.
 - Default bullet count: 3-5 lines per content cell. Match user-requested line counts when given.

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { execFile } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -145,6 +146,7 @@ function quotePowerShellString(value) {
 
 const tempDir = await mkdtemp(path.join(tmpdir(), "hwp-fill-cells-"));
 let current = input;
+mkdirSync(path.dirname(output), { recursive: true });
 
 try {
   const needsPostProcess = cleanPreset || removeNestedGuidesPreset || formatPreset;

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { execFile } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -39,6 +40,8 @@ if (!input || !output || !imagesJson || args.includes("--help") || args.includes
   usage();
   process.exit(input || output || imagesJson ? 0 : 1);
 }
+
+mkdirSync(path.dirname(output), { recursive: true });
 
 const items = JSON.parse(await readFile(imagesJson, "utf8")).items ?? [];
 if (!items.length) throw new Error("images.json requires items");

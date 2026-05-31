@@ -8,7 +8,6 @@ import path from "node:path";
 import { hancomRequireNoExistingHwpPowerShell, hancomSecurityPowerShell } from "./hwp_hancom_security.mjs";
 
 const require = createRequire(import.meta.url);
-
 const args = process.argv.slice(2);
 
 function usage() {
@@ -33,14 +32,29 @@ function readFlag(name) {
 const input = args[0];
 const output = args[1];
 const preset = readFlag("--preset");
+const sectionArg = readFlag("--section");
+const parentParagraphArg = readFlag("--parent-paragraph");
+const controlArg = readFlag("--control");
 
 if (!input || !output || args.includes("--help") || args.includes("-h")) {
   usage();
   process.exit(input || output ? 0 : 1);
 }
 
+mkdirSync(path.dirname(output), { recursive: true });
+
 if (!["business-plan-overview", "business-plan-overview-only", "business-plan-all-guides"].includes(preset)) {
   throw new Error("Supported presets: business-plan-overview, business-plan-overview-only, business-plan-all-guides");
+}
+
+const table = {
+  section: Number(sectionArg ?? 0),
+  parentParagraph: Number(parentParagraphArg ?? defaultParentParagraph(preset)),
+  control: Number(controlArg ?? 0)
+};
+
+if (!Number.isInteger(table.section) || !Number.isInteger(table.parentParagraph) || !Number.isInteger(table.control)) {
+  throw new Error("--section, --parent-paragraph, and --control must be integers");
 }
 
 if (process.platform === "win32") {
@@ -53,29 +67,25 @@ const source = await readFile(input);
 const doc = new core.HwpDocument(new Uint8Array(source));
 
 try {
-  const table = { section: 0, parentParagraph: 7, control: 0 };
   const targetCells = [1, 3, 5, 7, 9, 11, 13];
   let rangesDeleted = 0;
   let nestedTablesDeleted = 0;
 
   for (const cell of targetCells) {
     for (let nestedControl = 9; nestedControl >= 0; nestedControl -= 1) {
-      const path = JSON.stringify([
+      const cellPath = JSON.stringify([
         { controlIndex: table.control, cellIndex: cell, cellParaIndex: 0 },
         { controlIndex: nestedControl }
       ]);
       try {
-        doc.getTableDimensionsByPath(table.section, table.parentParagraph, path);
+        doc.getTableDimensionsByPath(table.section, table.parentParagraph, cellPath);
       } catch {
         continue;
       }
       try {
-        const textLength = doc.getCellParagraphLengthByPath(table.section, table.parentParagraph, path);
+        const textLength = doc.getCellParagraphLengthByPath(table.section, table.parentParagraph, cellPath);
         if (textLength >= 0) {
-          parseJsonResult(
-            doc.deleteRangeInCellByPath(table.section, table.parentParagraph, path, 0, textLength),
-            "deleteRangeInCellByPath"
-          );
+          parseJsonResult(doc.deleteRangeInCellByPath(table.section, table.parentParagraph, cellPath, 0, textLength), "deleteRangeInCellByPath");
         }
       } catch {
         // Some empty nested tables have no readable paragraph; deletion below still handles them.
@@ -90,16 +100,7 @@ try {
         for (const extra of [1, 2, 5, 20]) {
           try {
             parseJsonResult(
-              doc.deleteRangeInCell(
-                table.section,
-                table.parentParagraph,
-                table.control,
-                cell,
-                para,
-                length,
-                para,
-                length + extra
-              ),
+              doc.deleteRangeInCell(table.section, table.parentParagraph, table.control, cell, para, length, para, length + extra),
               "deleteRangeInCell"
             );
             rangesDeleted += 1;
@@ -116,32 +117,14 @@ try {
         const keepLength = visibleTextLength(text);
         if (length > keepLength) {
           parseJsonResult(
-            doc.deleteRangeInCell(
-              table.section,
-              table.parentParagraph,
-              table.control,
-              cell,
-              para,
-              keepLength,
-              para,
-              length
-            ),
+            doc.deleteRangeInCell(table.section, table.parentParagraph, table.control, cell, para, keepLength, para, length),
             "deleteRangeInCell"
           );
           rangesDeleted += 1;
         }
       } else {
         parseJsonResult(
-          doc.deleteRangeInCell(
-            table.section,
-            table.parentParagraph,
-            table.control,
-            cell,
-            para,
-            0,
-            para,
-            length
-          ),
+          doc.deleteRangeInCell(table.section, table.parentParagraph, table.control, cell, para, 0, para, length),
           "deleteRangeInCell"
         );
         rangesDeleted += 1;
@@ -156,10 +139,11 @@ try {
 }
 
 function visibleTextLength(text) {
-  const marker = "[以묒꺽 ?뚯씠釉?;
-  const index = String(text).indexOf(marker);
-  if (index >= 0) return index;
   return String(text).length;
+}
+
+function defaultParentParagraph(presetName) {
+  return presetName === "business-plan-overview-only" ? 1 : 7;
 }
 
 function parseJsonResult(raw, op) {
@@ -189,10 +173,7 @@ function ensureRhwpCore() {
   } catch {
     const npm = process.platform === "win32" ? "npm.cmd" : "npm";
     if (process.platform === "win32") {
-      execSync(`${npm} install @rhwp/core@^0.7.12 --no-audit --no-fund`, {
-        cwd: installDir,
-        stdio: "ignore"
-      });
+      execSync(`${npm} install @rhwp/core@^0.7.12 --no-audit --no-fund`, { cwd: installDir, stdio: "ignore" });
     } else {
       execFileSync(npm, ["install", "@rhwp/core@^0.7.12", "--no-audit", "--no-fund"], {
         cwd: installDir,
@@ -222,7 +203,7 @@ function pathToFileUrl(filePath) {
 }
 
 function removeWithHancomCom(inputPath, outputPath, presetName) {
-  const startIndex = presetName === "business-plan-overview-only" ? 7 : (presetName === "business-plan-all-guides" ? 12 : 13);
+  const startIndex = presetName === "business-plan-overview-only" ? 7 : presetName === "business-plan-all-guides" ? 12 : 13;
   const endIndex = presetName === "business-plan-overview-only" ? 15 : 21;
   const openFormat = path.extname(inputPath).toLowerCase() === ".hwpx" ? "HWPX" : "HWP";
   const script = `
