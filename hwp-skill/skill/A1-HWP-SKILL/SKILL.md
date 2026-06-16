@@ -9,6 +9,17 @@ description: Read, analyze, summarize, convert, compare, and edit Korean Hangul 
 
 Use the smallest context path that can finish the task.
 
+## Mandatory Overview Headline Rule
+
+For startup overview/business-plan overview generation, every filled content cell must start with one bracketed headline that states the specific claim, value proposition, problem, execution proof, growth logic, or team capability for that item.
+
+- Apply this by default unless the user explicitly asks not to use bracketed claim headlines.
+- Do not wait for the user to remind you.
+- Do not write section labels, form labels, or generic categories inside brackets.
+- Forbidden bracket headlines include `[제품 개요]`, `[아이템 개요]`, `[문제 인식]`, `[실현 가능성]`, `[성장 전략]`, `[성장전략]`, `[팀 구성]`, `[해결 전략]`, and any direct synonym of the row name.
+- Good bracket headlines are complete, item-specific Korean claim sentences, e.g. `[건조·민감 피부가 매일 부담 없이 쓰는 끈적임 적은 고보습 로션]`, `[샘플 테스트로 흡수감·잔여감·보습 지속력을 검증해 출시 리스크를 낮춤]`.
+- Before writing the spec JSON, check each `cells` content value: if the first line in brackets could be reused for any other item, rewrite it to mention the actual product, customer, proof, channel, or team capability.
+
 - Do not read scripts or long references unless debugging or changing them.
 - For repeated overview generation, do not inspect unless the target table is unknown or a write fails.
 - If inspection shows no table-like blocks, stop immediately and report that the file is not an overview-table form; do not keep trying coordinates.
@@ -27,7 +38,7 @@ Use the smallest context path that can finish the task.
 - Run Hancom setup once per machine/session, not during every document task.
 - For overview generation, remove blue guide boxes and nested example tables from the template before writing user content.
 - Prefer `assets/clean-overview-template.hwp` for overview generation. It is the cleaned template bundled with the installed skill, so GitHub installs do not depend on a user's Desktop sample folder.
-- Bracket headlines must summarize the actual claim in that row. Do not use generic row names such as `[아이템 개요]`, `[문제 인식]`, `[실현 가능성]`, `[성장전략]`, or `[팀 구성]` as the bracket headline.
+- Bracket headlines must summarize the actual item-specific claim in that row by default. Never use generic row names or section labels such as `[제품 개요]`, `[아이템 개요]`, `[문제 인식]`, `[실현 가능성]`, `[해결 전략]`, `[성장 전략]`, `[성장전략]`, or `[팀 구성]` unless the user explicitly asks for label-style headings.
 
 ## Tool Routing
 
@@ -77,7 +88,7 @@ Default writing rules:
 - Keep font family consistent across all filled cells and emphasis lines. If a layout map sets `fontFamily`, use it for every line.
 - Do not leave guide text or nested example tables in the final file. The finished document should look like the clean reference file with only the form structure and user-specific content visible.
 - Category/form label cell (`踰붿＜`, `遺꾩빞`, `?쒗뭹援?, `?낆쥌`) is not an explanation area. Write one short category phrase on one line only, e.g. `罹좏븨 媛꾪렪??, `?붿????뚮즺`, `臾멸뎄 ?뚰뭹`, `二쇰갑 ?λ퉬`. Do not use long slash chains.
-- Each content cell: `[핵심 결론 문장]` + separate bullet lines. Never collapse bullets into one paragraph.
+- Each content cell: `[item-specific core claim sentence]` + separate bullet lines. Never collapse bullets into one paragraph. The bracket line must be a concrete claim about the topic, not the row label.
 - Good bracket headline examples: `[소량 충진과 패키징 테스트로 시제품 검증이 가능]`, `[온라인 판매와 체험형 유통을 중심으로 단계적 확장 가능]`, `[제품 기획, 성분 검토, 패키징 협력이 가능한 실행형 팀 구성]`.
 - Always make the bracket headline line (`[ ... ]`) bold, with the same font family and normal black color unless the user explicitly requests a different style.
 - If crowded: shorten bullets first; then reduce inner margins/blank areas consistently; then reduce font/line spacing slightly. Do not make lines overlap.
